@@ -1,0 +1,2909 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Entraînement Espagnol</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Application d'entraînement à l'espagnol : flashcards, défis de traduction, QCM, théorie et assistant IA.">
+<meta name="theme-color" content="#667eea">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇪🇸</text></svg>">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #222;
+  }
+  header { text-align: center; padding: 20px 10px 10px; color: white; }
+  header h1 { margin: 0; font-size: 1.8em; }
+  header p { margin: 4px 0 0; opacity: 0.9; }
+  .tabs { display: flex; justify-content: center; gap: 8px; margin: 15px 10px; flex-wrap: wrap; }
+  .tab-btn {
+    background: rgba(255,255,255,0.2); color: white;
+    border: 2px solid rgba(255,255,255,0.4);
+    padding: 10px 18px; border-radius: 25px;
+    cursor: pointer; font-size: 0.95em; font-weight: 600;
+  }
+  .tab-btn:hover { background: rgba(255,255,255,0.3); }
+  .tab-btn.active { background: white; color: #667eea; }
+  .container {
+    max-width: 780px; margin: 0 auto 40px;
+    padding: 25px; background: white;
+    border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    min-height: 400px;
+  }
+  .lang-switch { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+  .lang-btn {
+    padding: 8px 16px; border: 2px solid #667eea;
+    background: white; color: #667eea;
+    border-radius: 20px; cursor: pointer; font-weight: 600;
+  }
+  .lang-btn.active { background: #667eea; color: white; }
+  
+  /* Sélection multiple de catégories */
+  .category-checkboxes {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 12px; border: 2px solid #ddd; border-radius: 8px;
+    margin-bottom: 15px; background: #fafafa;
+    max-height: 160px; overflow-y: auto;
+  }
+  .category-checkboxes .hint-text {
+    width: 100%; font-size: 0.85em; color: #666; margin-bottom: 4px;
+  }
+  .cat-cb-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.9em; cursor: pointer;
+    background: white; padding: 6px 12px;
+    border-radius: 20px; border: 1px solid #cbd5e0;
+    user-select: none; transition: all 0.2s;
+  }
+  .cat-cb-label:hover { border-color: #667eea; }
+  .cat-cb-label input { margin: 0; cursor: pointer; }
+  .cat-cb-label:has(input:checked) {
+    background: #ebf4ff; border-color: #667eea; color: #2b6cb0; font-weight: 700;
+  }
+
+  .flashcard {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white; padding: 50px 30px; border-radius: 15px;
+    text-align: center; font-size: 2em; font-weight: 700;
+    margin-bottom: 20px; min-height: 200px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none;
+    flex-direction: column; position: relative;
+  }
+  .flashcard .hint { font-size: 0.4em; opacity: 0.8; margin-top: 10px; font-weight: 400; }
+  .flashcard .cat-label { font-size: 0.35em; opacity: 0.7; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+  .flashcard .level-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.4em; font-weight: 700; }
+  
+  .flashcard .speak-btn, .flashcard .star-btn {
+    position: absolute; top: 10px; background: rgba(255,255,255,0.25); border: none; 
+    color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; 
+    font-size: 0.6em; transition: 0.2s;
+  }
+  .flashcard .speak-btn { left: 10px; }
+  .flashcard .star-btn { left: 58px; }
+  .flashcard .star-btn.active { background: #ecc94b; opacity: 1; box-shadow: 0 0 10px rgba(236,201,75,0.5); }
+  
+  .controls { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; }
+  .btn-primary { background: #667eea; color: white; flex: 1; }
+  .btn-primary:hover { background: #5568d3; }
+  .btn-success { background: #48bb78; color: white; }
+  .btn-danger { background: #f56565; color: white; }
+  .counter { text-align: center; color: #666; margin-top: 15px; font-size: 0.9em; }
+  input[type="text"], textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1em; font-family: inherit; }
+  textarea { min-height: 80px; resize: vertical; }
+  
+  .prompt { background: #edf2f7; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 1.2em; font-weight: 500; border-left: 4px solid #667eea; }
+  .prompt .sub { font-size: 0.75em; color: #666; margin-top: 5px; font-weight: 400; }
+  .prompt-with-speak { display: flex; align-items: center; gap: 12px; }
+  
+  .speak-inline, .star-inline {
+    border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; 
+    font-size: 1em; flex-shrink: 0; transition: 0.2s;
+  }
+  .speak-inline { background: #667eea; color: white; }
+  .star-inline { background: #cbd5e0; color: white; }
+  .star-inline.active { background: #ecc94b; box-shadow: 0 0 8px rgba(236,201,75,0.6); }
+
+  .result { margin-top: 15px; padding: 15px; border-radius: 8px; font-weight: 500; }
+  .result.correct { background: #c6f6d5; color: #22543d; border-left: 4px solid #48bb78; }
+  .result.wrong { background: #fed7d7; color: #742a2a; border-left: 4px solid #f56565; }
+  .result .answer { font-weight: 700; margin-top: 5px; }
+  .stats { display: flex; justify-content: space-around; background: #f7fafc; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9em; flex-wrap: wrap; gap: 5px; }
+  .stats span { font-weight: 700; }
+  .stats .good { color: #48bb78; }
+  .stats .bad { color: #f56565; }
+  .stats .master { color: #9f7aea; }
+  .hidden { display: none; }
+  h2 { color: #667eea; margin-top: 0; }
+  h3 { color: #4a5568; border-bottom: 2px solid #edf2f7; padding-bottom: 6px; }
+  h4 { color: #667eea; margin: 20px 0 8px; }
+  .info-box { background: #ebf8ff; border-left: 4px solid #4299e1; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em; color: #2c5282; }
+  
+  .mode-switch { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+  .mode-btn { flex: 1; min-width: 120px; padding: 10px; border: 2px solid #cbd5e0; background: white; color: #4a5568; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9em; }
+  .mode-btn.all { border-color: #667eea; color: #667eea; }
+  .mode-btn.all.active { background: #667eea; color: white; }
+  .mode-btn.failed { border-color: #f56565; color: #f56565; }
+  .mode-btn.failed.active { background: #f56565; color: white; }
+  .mode-btn.fav { border-color: #ecc94b; color: #d69e2e; }
+  .mode-btn.fav.active { background: #ecc94b; color: #744210; }
+  
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 5px; }
+  .badge.failed-bdg { background: #f56565; color: white; }
+  .mode-btn.failed.active .badge.failed-bdg { background: white; color: #f56565; }
+  .badge.fav-bdg { background: #ecc94b; color: #744210; }
+  .mode-btn.fav.active .badge.fav-bdg { background: white; color: #ecc94b; }
+
+  .btn-reset { background: #ed8936; color: white; padding: 6px 12px; font-size: 0.85em; margin-top: 8px; width: 100%; }
+  .completion-screen { text-align: center; padding: 30px 15px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border-radius: 12px; margin-bottom: 15px; }
+  .completion-screen h3 { margin: 0 0 10px; font-size: 1.5em; color: white; border: none; }
+  .completion-screen .score-big { font-size: 2.5em; font-weight: 700; margin: 15px 0; }
+  /* Clavier virtuel */
+  .spanish-keyboard { margin-top: 10px; padding: 12px; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+  .kbd-label { text-align: center; font-size: 0.75em; color: #718096; margin-bottom: 6px; font-weight: 600; letter-spacing: 0.5px; }
+  .kbd-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 4px; }
+  .kbd-key { background: white; border: 1px solid #cbd5e0; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 1.15em; font-weight: 600; color: #2d3748; min-width: 44px; user-select: none; }
+  .kbd-key:hover { background: #667eea; color: white; border-color: #667eea; }
+  /* Theory */
+  .theory-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .theory-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white; padding: 18px 15px 12px;
+    border-radius: 12px; text-align: center;
+    position: relative;
+  }
+  .theory-card h3 { color: white; border: none; margin: 5px 0; font-size: 1.05em; }
+  .theory-card p { font-size: 0.82em; opacity: 0.9; margin: 0 0 10px; }
+  .theory-card .icon { font-size: 1.8em; }
+  .theory-card .card-buttons { display: flex; gap: 6px; margin-top: 10px; }
+  .theory-card .card-btn {
+    flex: 1; padding: 7px; border: none;
+    border-radius: 6px; cursor: pointer;
+    font-weight: 600; font-size: 0.82em;
+  }
+  .theory-card .btn-view { background: rgba(255,255,255,0.25); color: white; }
+  .theory-card .btn-view:hover { background: rgba(255,255,255,0.4); }
+  .theory-card .btn-quiz { background: #ffd93d; color: #744210; }
+  .theory-card .btn-quiz:hover { background: #ffce00; }
+  .theory-content { display: none; }
+  .theory-content.active { display: block; }
+  .back-link { color: #667eea; cursor: pointer; margin-bottom: 15px; display: inline-block; font-weight: 600; }
+  .conj-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.95em; border-radius: 8px; overflow: hidden; }
+  .conj-table th { background: #667eea; color: white; padding: 10px 8px; text-align: left; }
+  .conj-table td { padding: 8px; border-bottom: 1px solid #edf2f7; background: white; }
+  .conj-table tr:nth-child(even) td { background: #f7fafc; }
+  .conj-table .highlight { color: #e53e3e; font-weight: 700; }
+  .rule-box { background: #f0fff4; border-left: 4px solid #48bb78; padding: 12px 15px; border-radius: 6px; margin: 12px 0; }
+  .warning-box { background: #fffaf0; border-left: 4px solid #ed8936; padding: 12px 15px; border-radius: 6px; margin: 12px 0; }
+  .example { background: #edf2f7; padding: 10px 14px; border-radius: 6px; margin: 8px 0; font-family: Georgia, serif; font-style: italic; }
+  .example .es { color: #2b6cb0; font-weight: 600; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+  .col-box { background: #f7fafc; padding: 15px; border-radius: 8px; border-top: 4px solid #667eea; }
+  /* Quiz */
+  .quiz-container { display: none; }
+  .quiz-container.active { display: block; }
+  .quiz-question {
+    background: linear-gradient(135deg, #ffd93d 0%, #ff9a3d 100%);
+    color: #744210; padding: 25px 20px;
+    border-radius: 12px; margin-bottom: 15px;
+    text-align: center; font-size: 1.3em;
+    font-weight: 700;
+  }
+  .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+  @media (max-width: 500px) { .quiz-options { grid-template-columns: 1fr; } }
+  .quiz-option {
+    background: white; border: 2px solid #cbd5e0;
+    padding: 15px 12px; border-radius: 8px;
+    cursor: pointer; font-size: 1em;
+    font-weight: 600; color: #2d3748;
+    text-align: center; transition: all 0.15s;
+  }
+  .quiz-option:hover:not(.disabled) { border-color: #667eea; background: #edf2f7; }
+  .quiz-option.correct { background: #c6f6d5; border-color: #48bb78; color: #22543d; }
+  .quiz-option.wrong { background: #fed7d7; border-color: #f56565; color: #742a2a; }
+  .quiz-option.disabled { cursor: default; opacity: 0.7; }
+  .quiz-progress { text-align: center; color: #666; font-size: 0.9em; margin-bottom: 10px; }
+  .quiz-explanation {
+    background: #ebf8ff; border-left: 4px solid #4299e1;
+    padding: 12px 15px; border-radius: 6px; margin: 12px 0;
+    font-size: 0.95em; color: #2c5282;
+  }
+  /* QCM - sélecteur de niveaux */
+  .level-switch { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+  .level-btn { flex: 1; min-width: 110px; padding: 10px 8px; border: 2px solid #cbd5e0; background: white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.9em; display: flex; flex-direction: column; align-items: center; gap: 2px; color: #4a5568; }
+  .level-btn .lvl-sub { font-size: 0.72em; font-weight: 500; opacity: 0.75; }
+  .level-btn.lvl1.active { background: #48bb78; color: white; border-color: #48bb78; }
+  .level-btn.lvl2.active { background: #ecc94b; color: #744210; border-color: #ecc94b; }
+  .level-btn.lvl3.active { background: #f56565; color: white; border-color: #f56565; }
+
+  /* ==========================================================
+     ASSISTANT IA
+     ========================================================== */
+  .ai-panel { border: 2px solid #e2e8f0; border-radius: 10px; margin-bottom: 15px; overflow: hidden; }
+  .ai-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 15px; background: #f7fafc; cursor: pointer; font-weight: 700; color: #4a5568; user-select: none; }
+  .ai-panel-body { padding: 15px; border-top: 1px solid #e2e8f0; display: none; }
+  .ai-panel.open .ai-panel-body { display: block; }
+  .ai-field { margin-bottom: 12px; }
+  .ai-field label { display: block; font-size: 0.85em; font-weight: 700; color: #4a5568; margin-bottom: 5px; }
+  .ai-field .help { font-size: 0.78em; color: #718096; margin-top: 4px; line-height: 1.45; }
+  .ai-field .help a { color: #4299e1; }
+  .ai-field select, .ai-field input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95em; font-family: inherit; background: white; }
+  .ai-pill { font-size: 0.72em; padding: 3px 10px; border-radius: 20px; font-weight: 700; white-space: nowrap; }
+  .ai-pill.off { background: #fed7d7; color: #742a2a; }
+  .ai-pill.on { background: #c6f6d5; color: #22543d; }
+  .ai-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ai-row .btn { flex: 1; min-width: 140px; }
+  .ai-chat { border: 2px solid #e2e8f0; border-radius: 10px; background: #fafafa; padding: 15px; min-height: 200px; max-height: 460px; overflow-y: auto; margin-bottom: 12px; }
+  .ai-msg { margin-bottom: 12px; display: flex; }
+  .ai-msg .bubble { padding: 10px 14px; border-radius: 12px; max-width: 88%; font-size: 0.95em; line-height: 1.55; word-wrap: break-word; overflow-wrap: anywhere; }
+  .ai-msg.user { justify-content: flex-end; }
+  .ai-msg.user .bubble { background: #667eea; color: white; border-bottom-right-radius: 3px; }
+  .ai-msg.bot .bubble { background: white; color: #2d3748; border: 1px solid #e2e8f0; border-bottom-left-radius: 3px; }
+  .ai-msg.err .bubble { background: #fed7d7; color: #742a2a; border: 1px solid #f56565; }
+  .ai-msg .bubble code { background: rgba(0,0,0,0.08); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+  .ai-empty { color: #a0aec0; text-align: center; padding: 35px 10px; font-size: 0.9em; }
+  .ai-proposal { background: #fffaf0; border: 2px solid #ed8936; border-radius: 10px; padding: 14px; margin: 10px 0; }
+  .ai-proposal h4 { margin: 0 0 6px; color: #c05621; }
+  .ai-proposal ul { margin: 8px 0; padding-left: 20px; max-height: 220px; overflow-y: auto; font-size: 0.9em; }
+  .ai-proposal .es { color: #2b6cb0; font-weight: 600; }
+  .ai-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .ai-chip { background: #edf2f7; border: 1px solid #cbd5e0; color: #4a5568; padding: 6px 12px; border-radius: 20px; font-size: 0.82em; cursor: pointer; }
+  .ai-chip:hover { background: #667eea; color: white; border-color: #667eea; }
+  .ai-input-row { display: flex; gap: 8px; align-items: stretch; }
+  .ai-input-row textarea { flex: 1; min-height: 54px; }
+  .ai-input-row .btn { min-width: 90px; }
+  .custom-list { max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 10px; }
+  .custom-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #edf2f7; font-size: 0.9em; }
+  .custom-item:last-child { border-bottom: none; }
+  .custom-item .x { background: #fed7d7; color: #742a2a; border: none; border-radius: 6px; padding: 4px 9px; cursor: pointer; font-weight: 700; }
+  .custom-item .cat { color: #718096; font-size: 0.85em; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🇪🇸 Entraînement Espagnol</h1>
+  <p>Créé pour Baptiste - Flashcards, défis, théorie, quiz & clavier</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('flashcards', this)">📇 Flashcards</button>
+  <button class="tab-btn" onclick="showTab('challenge', this)">🎯 Défi</button>
+  <button class="tab-btn" onclick="showTab('sentences', this)">📝 Phrases</button>
+  <button class="tab-btn" onclick="showTab('theory', this)">📚 Théorie</button>
+  <button class="tab-btn" onclick="showTab('qcm', this)">🧩 QCM</button>
+  <button class="tab-btn" onclick="showTab('ai', this)">🤖 Assistant IA</button>
+</div>
+
+<!-- FLASHCARDS -->
+<div id="flashcards" class="container">
+  <h2>Flashcards - Révision</h2>
+  <div class="info-box">Clique sur la carte pour la retourner. Bouton 🔊 pour la prononciation. L'étoile ⭐ pour tes favoris.</div>
+  
+  <div class="mode-switch">
+    <button class="mode-btn all active" id="flashMode-all" onclick="setFlashMode('all')">📚 Tous les mots</button>
+    <button class="mode-btn failed" id="flashMode-failed" onclick="setFlashMode('failed')">🔴 Mots ratés <span class="badge failed-bdg" id="flashFailedBadge">0</span></button>
+    <button class="mode-btn fav" id="flashMode-fav" onclick="setFlashMode('favorites')">⭐ Favoris <span class="badge fav-bdg" id="flashFavBadge">0</span></button>
+  </div>
+  
+  <div id="categoryFilter" class="category-checkboxes" onchange="resetFlashcards()"></div>
+  
+  <div class="lang-switch">
+    <button class="lang-btn active" id="lang-fr-flash" onclick="setFlashLang('fr')">🇫🇷 FR → ES</button>
+    <button class="lang-btn" id="lang-es-flash" onclick="setFlashLang('es')">🇪🇸 ES → FR</button>
+  </div>
+  
+  <div class="stats">
+    <div>✅ <span class="good" id="flashGood">0</span></div>
+    <div>❌ <span class="bad" id="flashBad">0</span></div>
+    <div>🎓 Maîtrisés : <span class="master" id="flashMastered">0</span></div>
+  </div>
+  
+  <div id="flashcard" class="flashcard" onclick="flipFlashcard(event)">
+    <button class="speak-btn" onclick="speakFlashcard(event)" title="Prononcer">🔊</button>
+    <button class="star-btn" id="flashStar" onclick="toggleFlashStar(event)" title="Favori">⭐</button>
+    <div class="level-badge" id="flashLevel"></div>
+    <div class="cat-label" id="flashCat"></div>
+    <div id="flashFront"></div>
+    <div class="hint" id="flashHint">👆 Clique pour voir</div>
+  </div>
+  
+  <div class="controls">
+    <button class="btn btn-danger" onclick="markFlashcard(false)">❌ Raté</button>
+    <button class="btn btn-success" onclick="markFlashcard(true)">✅ Réussi</button>
+  </div>
+  
+  <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="nextFlashcard()">➡️ Suivant</button>
+  <button class="btn btn-reset" onclick="resetFailedWords()">🔄 Vider mots ratés</button>
+  <button class="btn btn-reset" style="background:#a0aec0;" onclick="resetAllLevels()">♻️ Reset niveaux</button>
+  <div class="counter" id="flashCounter"></div>
+</div>
+
+<!-- CHALLENGE -->
+<div id="challenge" class="container hidden">
+  <h2>Défi - Traduction de mots</h2>
+  <div class="info-box">Tape la traduction, valide avec Entrée. Utilise le clavier virtuel pour les caractères espagnols.</div>
+  
+  <div class="mode-switch">
+    <button class="mode-btn all active" id="chalMode-all" onclick="setChalMode('all')">📚 Tous les mots</button>
+    <button class="mode-btn failed" id="chalMode-failed" onclick="setChalMode('failed')">🔴 Mots ratés <span class="badge failed-bdg" id="chalFailedBadge">0</span></button>
+    <button class="mode-btn fav" id="chalMode-fav" onclick="setChalMode('favorites')">⭐ Favoris <span class="badge fav-bdg" id="chalFavBadge">0</span></button>
+  </div>
+  
+  <div id="challengeCategoryFilter" class="category-checkboxes" onchange="restartChallenge()"></div>
+  
+  <div class="lang-switch">
+    <button class="lang-btn active" id="lang-fr-chal" onclick="setChalLang('fr')">🇫🇷 FR → ES</button>
+    <button class="lang-btn" id="lang-es-chal" onclick="setChalLang('es')">🇪🇸 ES → FR</button>
+  </div>
+  
+  <div class="stats">
+    <div>✅ <span class="good" id="chalGood">0</span></div>
+    <div>❌ <span class="bad" id="chalBad">0</span></div>
+    <div>🎯 <span id="chalScore">0%</span></div>
+  </div>
+  
+  <div class="counter" id="chalCounter" style="margin-bottom: 10px;"></div>
+  
+  <div class="prompt prompt-with-speak">
+    <button class="speak-inline" onclick="speakChal()" title="Prononcer">🔊</button>
+    <button class="star-inline" id="chalStar" onclick="toggleChalStar()" title="Favori">⭐</button>
+    <div id="chalPrompt" style="flex:1;">Chargement...</div>
+  </div>
+  
+  <input type="text" id="chalInput" placeholder="Ta réponse..." onkeypress="if(event.key==='Enter') checkChallenge()">
+  
+  <div class="spanish-keyboard">
+    <div class="kbd-label">⌨️ Clavier espagnol</div>
+    <div class="kbd-row">
+      <button class="kbd-key" onclick="insertChar('chalInput','á')">á</button>
+      <button class="kbd-key" onclick="insertChar('chalInput','é')">é</button>
+      <button class="kbd-key" onclick="insertChar('chalInput','í')">í</button>
+      <button class="kbd-key" onclick="insertChar('chalInput','ó')">ó</button>
+      <button class="kbd-key" onclick="insertChar('chalInput','ú')">ú</button>
+      <button class="kbd-key" onclick="insertChar('chalInput','ü')">ü</button>
+      <button class="kbd-key" onclick="insertChar('chalInput','ñ')">ñ</button>
+      <button class="kbd-key" onclick="insertChar('chalInput','¿')">¿</button>
+      <button class="kbd-key" onclick="insertChar('chalInput','¡')">¡</button>
+    </div>
+  </div>
+  
+  <div class="controls" style="margin-top: 15px;">
+    <button class="btn btn-primary" onclick="checkChallenge()">✓ Vérifier</button>
+    <button class="btn btn-primary" onclick="nextChallenge()">➡️ Suivant</button>
+  </div>
+  
+  <div id="chalResult"></div>
+  <div id="chalCompletion"></div>
+  <button class="btn btn-reset" onclick="resetFailedWords()">🔄 Vider mots ratés</button>
+</div>
+
+<!-- SENTENCES -->
+<div id="sentences" class="container hidden">
+  <h2>Phrases - Traduction</h2>
+  <div class="info-box">Phrases générées aléatoirement. Clavier virtuel disponible.</div>
+  <div class="lang-switch">
+    <button class="lang-btn active" id="lang-fr-sent" onclick="setSentLang('fr')">🇫🇷 FR → ES</button>
+    <button class="lang-btn" id="lang-es-sent" onclick="setSentLang('es')">🇪🇸 ES → FR</button>
+  </div>
+  <div class="stats"><div>📝 Phrases faites : <span id="sentCount">0</span></div></div>
+  <div class="prompt prompt-with-speak">
+    <button class="speak-inline" onclick="speakSent()" title="Prononcer">🔊</button>
+    <div style="flex:1;">
+      <div id="sentText">Clique sur "Nouvelle phrase" pour commencer.</div>
+      <div class="sub" id="sentSub"></div>
+    </div>
+  </div>
+  <textarea id="sentInput" placeholder="Ta traduction..."></textarea>
+  <div class="spanish-keyboard">
+    <div class="kbd-label">⌨️ Clavier espagnol</div>
+    <div class="kbd-row">
+      <button class="kbd-key" onclick="insertChar('sentInput','á')">á</button>
+      <button class="kbd-key" onclick="insertChar('sentInput','é')">é</button>
+      <button class="kbd-key" onclick="insertChar('sentInput','í')">í</button>
+      <button class="kbd-key" onclick="insertChar('sentInput','ó')">ó</button>
+      <button class="kbd-key" onclick="insertChar('sentInput','ú')">ú</button>
+      <button class="kbd-key" onclick="insertChar('sentInput','ü')">ü</button>
+      <button class="kbd-key" onclick="insertChar('sentInput','ñ')">ñ</button>
+      <button class="kbd-key" onclick="insertChar('sentInput','¿')">¿</button>
+      <button class="kbd-key" onclick="insertChar('sentInput','¡')">¡</button>
+    </div>
+  </div>
+  <div class="controls" style="margin-top: 15px;">
+    <button class="btn btn-success" onclick="showSentAnswer()">👀 Voir correction</button>
+    <button class="btn btn-primary" onclick="nextSentence()">➡️ Nouvelle phrase</button>
+  </div>
+  <div id="sentResult"></div>
+</div>
+
+<!-- QCM -->
+<div id="qcm" class="container hidden">
+  <h2>🧩 QCM - Choix multiples</h2>
+  <div class="info-box">Le pont idéal entre les flashcards et le défi ! Choisis une catégorie, un sens et un <strong>niveau de difficulté</strong>.</div>
+  
+  <div class="mode-switch">
+    <button class="mode-btn all active" id="qcmMode-all" onclick="setQcmMode('all')">📚 Tous les mots</button>
+    <button class="mode-btn failed" id="qcmMode-failed" onclick="setQcmMode('failed')">🔴 Mots ratés <span class="badge failed-bdg" id="qcmFailedBadge">0</span></button>
+    <button class="mode-btn fav" id="qcmMode-fav" onclick="setQcmMode('favorites')">⭐ Favoris <span class="badge fav-bdg" id="qcmFavBadge">0</span></button>
+  </div>
+  
+  <div id="qcmCategoryFilter" class="category-checkboxes" onchange="restartQcm()"></div>
+  
+  <div class="lang-switch">
+    <button class="lang-btn active" id="lang-fr-qcm" onclick="setQcmLang('fr')">🇫🇷 FR → ES</button>
+    <button class="lang-btn" id="lang-es-qcm" onclick="setQcmLang('es')">🇪🇸 ES → FR</button>
+  </div>
+  
+  <div class="level-switch">
+    <button class="level-btn lvl1 active" id="qcmLvl-1" onclick="setQcmLevel(1)">🟢 Niveau 1<span class="lvl-sub">sans rapport</span></button>
+    <button class="level-btn lvl2" id="qcmLvl-2" onclick="setQcmLevel(2)">🟡 Niveau 2<span class="lvl-sub">mots proches</span></button>
+    <button class="level-btn lvl3" id="qcmLvl-3" onclick="setQcmLevel(3)">🔴 Niveau 3<span class="lvl-sub">1 lettre près</span></button>
+  </div>
+  
+  <div class="stats">
+    <div>✅ <span class="good" id="qcmGood">0</span></div>
+    <div>❌ <span class="bad" id="qcmBad">0</span></div>
+    <div>🎯 <span id="qcmScore">0%</span></div>
+  </div>
+  
+  <div class="quiz-progress" id="qcmProgress"></div>
+  
+  <div class="prompt prompt-with-speak">
+    <button class="speak-inline" onclick="speakQcm()" title="Prononcer">🔊</button>
+    <button class="star-inline" id="qcmStar" onclick="toggleQcmStar()" title="Favori">⭐</button>
+    <div id="qcmPrompt" style="flex:1;">Chargement...</div>
+  </div>
+  
+  <div class="quiz-options" id="qcmOptions"></div>
+  <div id="qcmExplanation"></div>
+  <div id="qcmCompletion"></div>
+  <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="nextQcm()" id="qcmNextBtn" disabled>➡️ Suivant</button>
+</div>
+
+<!-- THEORY -->
+<div id="theory" class="container hidden">
+  <h2>📚 Théorie</h2>
+  <div id="theory-menu">
+    <div class="info-box">Chaque fiche a un bouton 📖 Voir (cours) et 🎯 Quiz (test à choix multiples).</div>
+    <h3>🔠 Conjugaison</h3>
+    <div class="theory-nav">
+      <div class="theory-card"><div class="icon">📗</div><h3>Présent - réguliers</h3><p>-AR, -ER, -IR</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('present-reg')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('present-reg')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">📕</div><h3>Présent - irréguliers</h3><p>ser, estar, tener...</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('present-irr')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('present-irr')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">🔀</div><h3>Verbes à diphtongue</h3><p>e→ie, o→ue, e→i</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('diphtongue')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('diphtongue')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">⏮️</div><h3>Passé composé</h3><p>haber + participe</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('past')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('past')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">⏭️</div><h3>Futur</h3><p>Proche & simple</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('future')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('future')">🎯 Quiz</button></div></div>
+    </div>
+    <h3>📖 Grammaire</h3>
+    <div class="theory-nav">
+      <div class="theory-card"><div class="icon">⚖️</div><h3>Ser vs Estar</h3><p>Quand utiliser quoi</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('ser-estar')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('ser-estar')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">🏷️</div><h3>Articles</h3><p>el, la, un, una...</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('articles')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('articles')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">❤️</div><h3>Le verbe Gustar</h3><p>Fonctionne à l'envers</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('gustar')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('gustar')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">🎨</div><h3>Adjectifs</h3><p>Accord et position</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('adjectifs')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('adjectifs')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">👉</div><h3>Démonstratifs & possessifs</h3><p>este, mi, tu, su</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('demonstratifs')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('demonstratifs')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">❓</div><h3>Interrogation & négation</h3><p>Questions & no</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('interro-nego')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('interro-nego')">🎯 Quiz</button></div></div>
+    </div>
+    <h3>🎯 Vocabulaire de référence</h3>
+    <div class="theory-nav">
+      <div class="theory-card"><div class="icon">🔢</div><h3>Nombres</h3><p>0 à 1 000 000</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('nombres')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('nombres')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">🎨</div><h3>Couleurs</h3><p>Nuances utiles</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('couleurs')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('couleurs')">🎯 Quiz</button></div></div>
+      <div class="theory-card"><div class="icon">📅</div><h3>Jours, mois, saisons</h3><p>Temps</p><div class="card-buttons"><button class="card-btn btn-view" onclick="showTheory('temps-jours')">📖 Voir</button><button class="card-btn btn-quiz" onclick="startQuiz('temps-jours')">🎯 Quiz</button></div></div>
+    </div>
+  </div>
+
+  <!-- Interface Quiz partagée -->
+  <div id="quiz-container" class="quiz-container">
+    <a class="back-link" onclick="closeQuiz()">← Retour aux thèmes</a>
+    <h3 id="quiz-title"></h3>
+    <div class="quiz-progress" id="quiz-progress"></div>
+    <div class="stats">
+      <div>✅ <span class="good" id="quizGood">0</span></div>
+      <div>❌ <span class="bad" id="quizBad">0</span></div>
+    </div>
+    <div class="quiz-question" id="quiz-question"></div>
+    <div class="quiz-options" id="quiz-options"></div>
+    <div id="quiz-explanation"></div>
+    <div id="quiz-completion"></div>
+    <button class="btn btn-primary" style="width:100%; margin-top: 10px;" onclick="nextQuizQuestion()" id="quiz-next-btn" disabled>➡️ Suivant</button>
+  </div>
+
+  <!-- Contenus théoriques -->
+  <div id="theory-present-reg" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour aux thèmes</a>
+    <h3>📗 Présent - Verbes réguliers</h3>
+    <p>Les verbes réguliers finissent en <strong>-ar</strong>, <strong>-er</strong> ou <strong>-ir</strong>.</p>
+    <h4>Verbes en <span class="highlight">-AR</span> (hablar)</h4>
+    <table class="conj-table"><tr><th>Personne</th><th>Fin</th><th>hablar</th></tr><tr><td>yo</td><td>-o</td><td>hablo</td></tr><tr><td>tú</td><td>-as</td><td>hablas</td></tr><tr><td>él/ella</td><td>-a</td><td>habla</td></tr><tr><td>nosotros</td><td>-amos</td><td>hablamos</td></tr><tr><td>vosotros</td><td>-áis</td><td>habláis</td></tr><tr><td>ellos</td><td>-an</td><td>hablan</td></tr></table>
+    <h4>Verbes en <span class="highlight">-ER</span> (comer)</h4>
+    <table class="conj-table"><tr><th>Personne</th><th>Fin</th><th>comer</th></tr><tr><td>yo</td><td>-o</td><td>como</td></tr><tr><td>tú</td><td>-es</td><td>comes</td></tr><tr><td>él/ella</td><td>-e</td><td>come</td></tr><tr><td>nosotros</td><td>-emos</td><td>comemos</td></tr><tr><td>vosotros</td><td>-éis</td><td>coméis</td></tr><tr><td>ellos</td><td>-en</td><td>comen</td></tr></table>
+    <h4>Verbes en <span class="highlight">-IR</span> (vivir)</h4>
+    <table class="conj-table"><tr><th>Personne</th><th>Fin</th><th>vivir</th></tr><tr><td>yo</td><td>-o</td><td>vivo</td></tr><tr><td>tú</td><td>-es</td><td>vives</td></tr><tr><td>él/ella</td><td>-e</td><td>vive</td></tr><tr><td>nosotros</td><td>-imos</td><td>vivimos</td></tr><tr><td>vosotros</td><td>-ís</td><td>vivís</td></tr><tr><td>ellos</td><td>-en</td><td>viven</td></tr></table>
+  </div>
+
+  <div id="theory-present-irr" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>📕 Verbes irréguliers essentiels</h3>
+    <div class="two-col">
+      <div class="col-box"><h4>SER</h4><table class="conj-table"><tr><td>yo</td><td>soy</td></tr><tr><td>tú</td><td>eres</td></tr><tr><td>él</td><td>es</td></tr><tr><td>nos.</td><td>somos</td></tr><tr><td>vos.</td><td>sois</td></tr><tr><td>ellos</td><td>son</td></tr></table></div>
+      <div class="col-box"><h4>ESTAR</h4><table class="conj-table"><tr><td>yo</td><td>estoy</td></tr><tr><td>tú</td><td>estás</td></tr><tr><td>él</td><td>está</td></tr><tr><td>nos.</td><td>estamos</td></tr><tr><td>vos.</td><td>estáis</td></tr><tr><td>ellos</td><td>están</td></tr></table></div>
+    </div>
+    <div class="two-col">
+      <div class="col-box"><h4>TENER</h4><table class="conj-table"><tr><td>yo</td><td>tengo</td></tr><tr><td>tú</td><td>tienes</td></tr><tr><td>él</td><td>tiene</td></tr><tr><td>nos.</td><td>tenemos</td></tr><tr><td>vos.</td><td>tenéis</td></tr><tr><td>ellos</td><td>tienen</td></tr></table></div>
+      <div class="col-box"><h4>IR</h4><table class="conj-table"><tr><td>yo</td><td>voy</td></tr><tr><td>tú</td><td>vas</td></tr><tr><td>él</td><td>va</td></tr><tr><td>nos.</td><td>vamos</td></tr><tr><td>vos.</td><td>vais</td></tr><tr><td>ellos</td><td>van</td></tr></table></div>
+    </div>
+    <div class="two-col">
+      <div class="col-box"><h4>HABER</h4><table class="conj-table"><tr><td>yo</td><td>he</td></tr><tr><td>tú</td><td>has</td></tr><tr><td>él</td><td>ha</td></tr><tr><td>nos.</td><td>hemos</td></tr><tr><td>vos.</td><td>habéis</td></tr><tr><td>ellos</td><td>han</td></tr></table></div>
+      <div class="col-box"><h4>HACER</h4><table class="conj-table"><tr><td>yo</td><td>hago</td></tr><tr><td>tú</td><td>haces</td></tr><tr><td>él</td><td>hace</td></tr><tr><td>nos.</td><td>hacemos</td></tr><tr><td>vos.</td><td>hacéis</td></tr><tr><td>ellos</td><td>hacen</td></tr></table></div>
+    </div>
+  </div>
+
+  <div id="theory-diphtongue" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>🔀 Verbes à diphtongue</h3>
+    <p>La voyelle change à toutes les personnes <strong>sauf nosotros/vosotros</strong>.</p>
+    <h4>Type 1 : e → ie</h4>
+    <table class="conj-table"><tr><th>Personne</th><th>querer</th><th>pensar</th></tr><tr><td>yo</td><td>quiero</td><td>pienso</td></tr><tr><td>tú</td><td>quieres</td><td>piensas</td></tr><tr><td>él</td><td>quiere</td><td>piensa</td></tr><tr><td>nos.</td><td class="highlight">queremos</td><td class="highlight">pensamos</td></tr><tr><td>ellos</td><td>quieren</td><td>piensan</td></tr></table>
+    <h4>Type 2 : o → ue</h4>
+    <table class="conj-table"><tr><th>Personne</th><th>poder</th><th>dormir</th></tr><tr><td>yo</td><td>puedo</td><td>duermo</td></tr><tr><td>tú</td><td>puedes</td><td>duermes</td></tr><tr><td>él</td><td>puede</td><td>duerme</td></tr><tr><td>nos.</td><td class="highlight">podemos</td><td class="highlight">dormimos</td></tr><tr><td>ellos</td><td>pueden</td><td>duermen</td></tr></table>
+    <h4>Type 3 : e → i (-ir seulement)</h4>
+    <table class="conj-table"><tr><th>Personne</th><th>pedir</th><th>servir</th></tr><tr><td>yo</td><td>pido</td><td>sirvo</td></tr><tr><td>tú</td><td>pides</td><td>sirves</td></tr><tr><td>él</td><td>pide</td><td>sirve</td></tr><tr><td>nos.</td><td class="highlight">pedimos</td><td class="highlight">servimos</td></tr><tr><td>ellos</td><td>piden</td><td>sirven</td></tr></table>
+  </div>
+
+  <div id="theory-past" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>⏮️ Passé composé</h3>
+    <div class="rule-box"><strong>haber (présent) + participe passé</strong></div>
+    <table class="conj-table"><tr><td>yo</td><td>he</td></tr><tr><td>tú</td><td>has</td></tr><tr><td>él</td><td>ha</td></tr><tr><td>nos.</td><td>hemos</td></tr><tr><td>vos.</td><td>habéis</td></tr><tr><td>ellos</td><td>han</td></tr></table>
+    <h4>Participes</h4>
+    <table class="conj-table"><tr><th>Groupe</th><th>Fin</th><th>Ex.</th></tr><tr><td>-ar</td><td>-ado</td><td>hablado</td></tr><tr><td>-er</td><td>-ido</td><td>comido</td></tr><tr><td>-ir</td><td>-ido</td><td>vivido</td></tr></table>
+    <h4>Irréguliers</h4>
+    <table class="conj-table"><tr><td>hacer</td><td>hecho</td></tr><tr><td>decir</td><td>dicho</td></tr><tr><td>ver</td><td>visto</td></tr><tr><td>abrir</td><td>abierto</td></tr><tr><td>escribir</td><td>escrito</td></tr><tr><td>poner</td><td>puesto</td></tr><tr><td>volver</td><td>vuelto</td></tr></table>
+    <div class="warning-box">Le participe ne s'accorde <strong>jamais</strong> avec le sujet.</div>
+  </div>
+
+  <div id="theory-future" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>⏭️ Le futur</h3>
+    <h4>Futur proche</h4>
+    <div class="rule-box"><strong>ir + a + infinitif</strong></div>
+    <div class="example"><span class="es">Voy a comer.</span> → Je vais manger.</div>
+    <h4>Futur simple</h4>
+    <table class="conj-table"><tr><th>Personne</th><th>Fin</th><th>hablar</th></tr><tr><td>yo</td><td>-é</td><td>hablaré</td></tr><tr><td>tú</td><td>-ás</td><td>hablarás</td></tr><tr><td>él</td><td>-á</td><td>hablará</td></tr><tr><td>nos.</td><td>-emos</td><td>hablaremos</td></tr><tr><td>vos.</td><td>-éis</td><td>hablaréis</td></tr><tr><td>ellos</td><td>-án</td><td>hablarán</td></tr></table>
+    <h4>Radicaux irréguliers</h4>
+    <table class="conj-table"><tr><td>tener</td><td>tendré</td></tr><tr><td>poder</td><td>podré</td></tr><tr><td>hacer</td><td>haré</td></tr><tr><td>decir</td><td>diré</td></tr><tr><td>venir</td><td>vendré</td></tr><tr><td>salir</td><td>saldré</td></tr></table>
+  </div>
+
+  <div id="theory-ser-estar" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>⚖️ Ser vs Estar</h3>
+    <div class="rule-box"><strong>SER</strong> = identité, définition<br><strong>ESTAR</strong> = état, position</div>
+    <div class="two-col">
+      <div class="col-box"><h4>✅ SER pour :</h4><ul><li>Identité, nationalité, profession</li><li>Caractéristiques permanentes</li><li>Origine, heure, possession</li></ul></div>
+      <div class="col-box"><h4>✅ ESTAR pour :</h4><ul><li>Localisation (même permanente)</li><li>États temporaires</li><li>Émotions, santé</li></ul></div>
+    </div>
+    <h4>Adjectifs à double sens</h4>
+    <table class="conj-table"><tr><th></th><th>SER</th><th>ESTAR</th></tr><tr><td>listo</td><td>intelligent</td><td>prêt</td></tr><tr><td>bueno</td><td>gentil</td><td>en bonne santé</td></tr><tr><td>malo</td><td>méchant</td><td>malade</td></tr><tr><td>rico</td><td>riche</td><td>délicieux</td></tr></table>
+  </div>
+
+  <div id="theory-articles" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>🏷️ Les articles</h3>
+    <h4>Définis</h4>
+    <table class="conj-table"><tr><th></th><th>Sing.</th><th>Pl.</th></tr><tr><td>M.</td><td>el</td><td>los</td></tr><tr><td>F.</td><td>la</td><td>las</td></tr></table>
+    <h4>Indéfinis</h4>
+    <table class="conj-table"><tr><th></th><th>Sing.</th><th>Pl.</th></tr><tr><td>M.</td><td>un</td><td>unos</td></tr><tr><td>F.</td><td>una</td><td>unas</td></tr></table>
+    <div class="rule-box"><strong>a + el = al</strong>, <strong>de + el = del</strong></div>
+    <ul><li>-o → masculin (el libro)</li><li>-a → féminin (la casa)</li><li>-ción, -sión, -dad → féminin</li><li>Exceptions : la mano, el día, el problema</li></ul>
+  </div>
+
+  <div id="theory-gustar" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>❤️ Le verbe Gustar</h3>
+    <div class="rule-box">Fonctionne à l'envers : "le café me plaît" plutôt que "j'aime le café".<br><em>Me gusta el café.</em></div>
+    <table class="conj-table"><tr><th>Pronom</th><th>Signification</th></tr><tr><td>me</td><td>j'aime</td></tr><tr><td>te</td><td>tu aimes</td></tr><tr><td>le</td><td>il/elle aime</td></tr><tr><td>nos</td><td>nous aimons</td></tr><tr><td>os</td><td>vous aimez</td></tr><tr><td>les</td><td>ils aiment</td></tr></table>
+    <div class="rule-box"><strong>gusta</strong> = une chose/verbe / <strong>gustan</strong> = plusieurs choses</div>
+  </div>
+
+  <div id="theory-adjectifs" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>🎨 Les adjectifs</h3>
+    <table class="conj-table"><tr><th>Type</th><th>M.s.</th><th>F.s.</th><th>M.p.</th><th>F.p.</th></tr><tr><td>-o</td><td>alto</td><td>alta</td><td>altos</td><td>altas</td></tr><tr><td>-e</td><td>grande</td><td>grande</td><td>grandes</td><td>grandes</td></tr><tr><td>cons.</td><td>fácil</td><td>fácil</td><td>fáciles</td><td>fáciles</td></tr></table>
+    <p>Adjectif <strong>après</strong> le nom généralement.</p>
+    <h4>Comparatifs</h4>
+    <table class="conj-table"><tr><td>más... que</td><td>plus... que</td></tr><tr><td>menos... que</td><td>moins... que</td></tr><tr><td>tan... como</td><td>aussi... que</td></tr><tr><td>mejor / peor</td><td>meilleur / pire</td></tr></table>
+  </div>
+
+  <div id="theory-demonstratifs" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>👉 Démonstratifs & possessifs</h3>
+    <h4>Démonstratifs (3 distances)</h4>
+    <table class="conj-table"><tr><th>Distance</th><th>M.s.</th><th>F.s.</th><th>M.p.</th><th>F.p.</th></tr><tr><td>Proche</td><td>este</td><td>esta</td><td>estos</td><td>estas</td></tr><tr><td>Moyenne</td><td>ese</td><td>esa</td><td>esos</td><td>esas</td></tr><tr><td>Loin</td><td>aquel</td><td>aquella</td><td>aquellos</td><td>aquellas</td></tr></table>
+    <h4>Possessifs</h4>
+    <table class="conj-table"><tr><th>Sujet</th><th>Sing.</th><th>Pl.</th></tr><tr><td>yo</td><td>mi</td><td>mis</td></tr><tr><td>tú</td><td>tu</td><td>tus</td></tr><tr><td>él/ella</td><td>su</td><td>sus</td></tr><tr><td>nos.</td><td>nuestro/a</td><td>nuestros/as</td></tr><tr><td>ellos</td><td>su</td><td>sus</td></tr></table>
+  </div>
+
+  <div id="theory-interro-nego" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>❓ Interrogation & négation</h3>
+    <div class="rule-box"><strong>no</strong> avant le verbe pour la négation.</div>
+    <p>Double négation possible et normale : <em>No tengo nada.</em> (Je n'ai rien.)</p>
+    <table class="conj-table"><tr><td>nada</td><td>rien</td></tr><tr><td>nadie</td><td>personne</td></tr><tr><td>nunca</td><td>jamais</td></tr><tr><td>tampoco</td><td>non plus</td></tr></table>
+    <h4>Mots interrogatifs</h4>
+    <table class="conj-table"><tr><td>¿Qué?</td><td>Quoi ?</td></tr><tr><td>¿Quién?</td><td>Qui ?</td></tr><tr><td>¿Dónde?</td><td>Où ?</td></tr><tr><td>¿Cuándo?</td><td>Quand ?</td></tr><tr><td>¿Cómo?</td><td>Comment ?</td></tr><tr><td>¿Por qué?</td><td>Pourquoi ?</td></tr><tr><td>¿Cuánto?</td><td>Combien ?</td></tr></table>
+  </div>
+
+  <div id="theory-nombres" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>🔢 Les nombres</h3>
+    <table class="conj-table"><tr><td>0 cero</td><td>1 uno</td><td>2 dos</td><td>3 tres</td></tr><tr><td>4 cuatro</td><td>5 cinco</td><td>6 seis</td><td>7 siete</td></tr><tr><td>8 ocho</td><td>9 nueve</td><td>10 diez</td><td>11 once</td></tr><tr><td>12 doce</td><td>13 trece</td><td>14 catorce</td><td>15 quince</td></tr><tr><td>16 dieciséis</td><td>17 diecisiete</td><td>18 dieciocho</td><td>19 diecinueve</td></tr><tr><td>20 veinte</td><td>30 treinta</td><td>40 cuarenta</td><td>50 cincuenta</td></tr><tr><td>60 sesenta</td><td>70 setenta</td><td>80 ochenta</td><td>90 noventa</td></tr></table>
+    <h4>Centaines</h4>
+    <table class="conj-table"><tr><td>100 cien</td><td>200 doscientos</td></tr><tr><td>300 trescientos</td><td>400 cuatrocientos</td></tr><tr><td>500 quinientos ⚠️</td><td>600 seiscientos</td></tr><tr><td>700 setecientos ⚠️</td><td>800 ochocientos</td></tr><tr><td>900 novecientos ⚠️</td><td>1 000 mil</td></tr></table>
+    <div class="warning-box">Attention : 500 = quinientos, 700 = setecientos, 900 = novecientos.</div>
+  </div>
+
+  <div id="theory-couleurs" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>🎨 Les couleurs</h3>
+    <table class="conj-table"><tr><th>ES</th><th>FR</th></tr><tr><td>rojo</td><td>rouge</td></tr><tr><td>azul</td><td>bleu</td></tr><tr><td>verde</td><td>vert</td></tr><tr><td>amarillo</td><td>jaune</td></tr><tr><td>negro</td><td>noir</td></tr><tr><td>blanco</td><td>blanc</td></tr><tr><td>gris</td><td>gris</td></tr><tr><td>marrón</td><td>marron</td></tr><tr><td>morado</td><td>violet</td></tr><tr><td>naranja</td><td>orange</td></tr><tr><td>rosa</td><td>rose</td></tr></table>
+    <div class="rule-box"><strong>claro</strong> = clair / <strong>oscuro</strong> = foncé</div>
+  </div>
+
+  <div id="theory-temps-jours" class="theory-content">
+    <a class="back-link" onclick="backTheory()">← Retour</a>
+    <h3>📅 Jours, mois, saisons</h3>
+    <h4>Jours (minuscule !)</h4>
+    <table class="conj-table"><tr><td>lunes</td><td>lundi</td></tr><tr><td>martes</td><td>mardi</td></tr><tr><td>miércoles</td><td>mercredi</td></tr><tr><td>jueves</td><td>jeudi</td></tr><tr><td>viernes</td><td>vendredi</td></tr><tr><td>sábado</td><td>samedi</td></tr><tr><td>domingo</td><td>dimanche</td></tr></table>
+    <h4>Mois</h4>
+    <table class="conj-table"><tr><td>enero</td><td>janvier</td></tr><tr><td>febrero</td><td>février</td></tr><tr><td>marzo</td><td>mars</td></tr><tr><td>abril</td><td>avril</td></tr><tr><td>mayo</td><td>mai</td></tr><tr><td>junio</td><td>juin</td></tr><tr><td>julio</td><td>juillet</td></tr><tr><td>agosto</td><td>août</td></tr><tr><td>septiembre</td><td>septembre</td></tr><tr><td>octubre</td><td>octobre</td></tr><tr><td>noviembre</td><td>novembre</td></tr><tr><td>diciembre</td><td>décembre</td></tr></table>
+    <h4>Saisons</h4>
+    <table class="conj-table"><tr><td>la primavera</td><td>le printemps</td></tr><tr><td>el verano</td><td>l'été</td></tr><tr><td>el otoño</td><td>l'automne</td></tr><tr><td>el invierno</td><td>l'hiver</td></tr></table>
+  </div>
+</div>
+
+<!-- ASSISTANT IA -->
+<div id="ai" class="container hidden">
+  <h2>🤖 Assistant IA</h2>
+  <div class="info-box">
+    Pose n'importe quelle question d'espagnol, ou demande d'ajouter des mots / une nouvelle catégorie.
+    <strong>Ta banque de mots d'origine n'est jamais touchée</strong> : les ajouts vont dans une liste « perso »
+    séparée, que tu peux relire, exporter ou effacer à tout moment.
+  </div>
+
+  <!-- Configuration du modèle -->
+  <div class="ai-panel" id="aiSetupPanel">
+    <div class="ai-panel-head" onclick="toggleAiPanel('aiSetupPanel')">
+      <span>⚙️ Configuration du modèle</span>
+      <span class="ai-pill off" id="aiStatusPill">non configuré</span>
+    </div>
+    <div class="ai-panel-body">
+      <div class="ai-field">
+        <label for="aiProvider">Fournisseur</label>
+        <select id="aiProvider" onchange="onAiProviderChange()"></select>
+        <div class="help" id="aiProviderHelp"></div>
+      </div>
+
+      <div class="ai-field" id="aiEndpointField">
+        <label for="aiEndpoint">URL de l'API</label>
+        <input type="text" id="aiEndpoint" placeholder="https://...">
+        <div class="help">Laisse tel quel sauf si tu utilises ton propre proxy (Cloudflare Worker, etc.).</div>
+      </div>
+
+      <div class="ai-field" id="aiKeyField">
+        <label for="aiKey">Clé API</label>
+        <input type="password" id="aiKey" placeholder="Colle ta clé ici" autocomplete="off">
+        <div class="help">
+          🔒 La clé est stockée <strong>uniquement dans ton navigateur</strong> (localStorage), jamais dans le code
+          du site. Chaque ordinateur/navigateur devra donc la saisir une fois.
+        </div>
+      </div>
+
+      <div class="ai-field">
+        <label for="aiModel">Modèle</label>
+        <input type="text" id="aiModel" list="aiModelList" placeholder="nom du modèle">
+        <datalist id="aiModelList"></datalist>
+        <div class="help" id="aiModelHelp"></div>
+      </div>
+
+      <div class="ai-row">
+        <button class="btn btn-primary" onclick="saveAiConfig(true)">💾 Enregistrer</button>
+        <button class="btn btn-success" onclick="testAiConnection()">🔌 Tester la connexion</button>
+        <button class="btn btn-primary" style="background:#805ad5;" onclick="listAiModels()">📋 Lister les modèles</button>
+      </div>
+      <div id="aiSetupResult" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- Mes mots ajoutés -->
+  <div class="ai-panel" id="aiCustomPanel">
+    <div class="ai-panel-head" onclick="toggleAiPanel('aiCustomPanel')">
+      <span>🗂️ Mes mots ajoutés</span>
+      <span class="ai-pill on" id="aiCustomPill">0 mot</span>
+    </div>
+    <div class="ai-panel-body">
+      <div class="ai-row">
+        <button class="btn btn-primary" onclick="exportCustomWords()">⬇️ Exporter (JSON)</button>
+        <button class="btn btn-primary" style="background:#38b2ac;" onclick="document.getElementById('customImportFile').click()">⬆️ Importer</button>
+        <button class="btn btn-danger" onclick="clearCustomWords()">🗑️ Tout effacer</button>
+      </div>
+      <input type="file" id="customImportFile" accept=".json,application/json" class="hidden" onchange="importCustomWords(event)">
+      <div id="customWordsList"></div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="ai-suggestions" id="aiSuggestions"></div>
+  <div class="ai-chat" id="aiChat"></div>
+
+  <div class="ai-input-row">
+    <textarea id="aiInput" placeholder="Ex : ajoute 15 mots sur la cuisine espagnole&#10;(Entrée = envoyer, Maj+Entrée = nouvelle ligne)"></textarea>
+    <button class="btn btn-primary" id="aiSendBtn" onclick="sendAiMessage()">📨 Envoyer</button>
+  </div>
+
+  <div class="spanish-keyboard">
+    <div class="kbd-label">⌨️ Clavier espagnol</div>
+    <div class="kbd-row">
+      <button class="kbd-key" onclick="insertChar('aiInput','á')">á</button>
+      <button class="kbd-key" onclick="insertChar('aiInput','é')">é</button>
+      <button class="kbd-key" onclick="insertChar('aiInput','í')">í</button>
+      <button class="kbd-key" onclick="insertChar('aiInput','ó')">ó</button>
+      <button class="kbd-key" onclick="insertChar('aiInput','ú')">ú</button>
+      <button class="kbd-key" onclick="insertChar('aiInput','ü')">ü</button>
+      <button class="kbd-key" onclick="insertChar('aiInput','ñ')">ñ</button>
+      <button class="kbd-key" onclick="insertChar('aiInput','¿')">¿</button>
+      <button class="kbd-key" onclick="insertChar('aiInput','¡')">¡</button>
+    </div>
+  </div>
+
+  <button class="btn btn-reset" onclick="clearAiChat()">🧹 Effacer la conversation</button>
+</div>
+
+<script>
+/* ==========================================================
+   BANQUE DE MOTS
+   ========================================================== */
+/* ⚠️ BANQUE D'ORIGINE — NE PAS MODIFIER.
+   Les mots ajoutés via l'assistant IA vont dans `customWords` (localStorage),
+   jamais ici. La liste utilisée par l'app est `wordBank` = BASE_WORD_BANK + customWords. */
+const BASE_WORD_BANK = [
+  // Politesse
+  { fr: "salut / bonjour", es: "hola", cat: "Politesse" },
+  { fr: "bonjour (matin)", es: "buenos días", cat: "Politesse" },
+  { fr: "bon après-midi", es: "buenas tardes", cat: "Politesse" },
+  { fr: "bonsoir / bonne nuit", es: "buenas noches", cat: "Politesse" },
+  { fr: "au revoir", es: "adiós", cat: "Politesse" },
+  { fr: "à bientôt", es: "hasta luego", cat: "Politesse" },
+  { fr: "à demain", es: "hasta mañana", cat: "Politesse" },
+  { fr: "merci", es: "gracias", cat: "Politesse" },
+  { fr: "merci beaucoup", es: "muchas gracias", cat: "Politesse" },
+  { fr: "de rien", es: "de nada", cat: "Politesse" },
+  { fr: "s'il vous plaît", es: "por favor", cat: "Politesse" },
+  { fr: "pardon", es: "perdón", cat: "Politesse" },
+  { fr: "désolé", es: "lo siento", cat: "Politesse" },
+  { fr: "enchanté", es: "mucho gusto", cat: "Politesse" },
+  { fr: "comment allez-vous ?", es: "¿qué tal?", cat: "Politesse" },
+  { fr: "bienvenue", es: "bienvenido", cat: "Politesse" },
+  { fr: "excusez-moi (pour passer)", es: "con permiso", cat: "Politesse" },
+  { fr: "félicitations", es: "felicidades", cat: "Politesse" },
+  { fr: "bonne chance", es: "buena suerte", cat: "Politesse" },
+  { fr: "santé (trinquer)", es: "salud", cat: "Politesse" },
+  { fr: "à tout à l'heure", es: "hasta pronto", cat: "Politesse" },
+  // Réponses
+  { fr: "oui", es: "sí", cat: "Réponses" },
+  { fr: "non", es: "no", cat: "Réponses" },
+  { fr: "peut-être", es: "tal vez", cat: "Réponses" },
+  { fr: "bien (adverbe)", es: "bien", cat: "Réponses" },
+  { fr: "mal", es: "mal", cat: "Réponses" },
+  { fr: "bien sûr", es: "claro", cat: "Réponses" },
+  { fr: "d'accord", es: "vale", cat: "Réponses" },
+  { fr: "peut-être (quizás)", es: "quizás", cat: "Réponses" },
+  { fr: "exactement", es: "exacto", cat: "Réponses" },
+  { fr: "bien sûr que oui", es: "por supuesto", cat: "Réponses" },
+  { fr: "je ne crois pas", es: "creo que no", cat: "Réponses" },
+  { fr: "je crois que oui", es: "creo que sí", cat: "Réponses" },
+  { fr: "aucune idée", es: "ni idea", cat: "Réponses" },
+  // Pronoms
+  { fr: "je", es: "yo", cat: "Pronoms" },
+  { fr: "tu", es: "tú", cat: "Pronoms" },
+  { fr: "il", es: "él", cat: "Pronoms" },
+  { fr: "elle", es: "ella", cat: "Pronoms" },
+  { fr: "nous", es: "nosotros", cat: "Pronoms" },
+  { fr: "vous", es: "vosotros", cat: "Pronoms" },
+  { fr: "ils", es: "ellos", cat: "Pronoms" },
+  { fr: "elles", es: "ellas", cat: "Pronoms" },
+  { fr: "vous (politesse sing.)", es: "usted", cat: "Pronoms" },
+  { fr: "vous (politesse plur.)", es: "ustedes", cat: "Pronoms" },
+  { fr: "moi (après prép.)", es: "mí", cat: "Pronoms" },
+  { fr: "toi (après prép.)", es: "ti", cat: "Pronoms" },
+  { fr: "avec moi", es: "conmigo", cat: "Pronoms" },
+  { fr: "avec toi", es: "contigo", cat: "Pronoms" },
+  // Verbes
+  { fr: "être (essence)", es: "ser", cat: "Verbes" },
+  { fr: "être (état, lieu)", es: "estar", cat: "Verbes" },
+  { fr: "avoir", es: "tener", cat: "Verbes" },
+  { fr: "avoir (auxiliaire)", es: "haber", cat: "Verbes" },
+  { fr: "faire", es: "hacer", cat: "Verbes" },
+  { fr: "aller", es: "ir", cat: "Verbes" },
+  { fr: "venir", es: "venir", cat: "Verbes" },
+  { fr: "pouvoir", es: "poder", cat: "Verbes" },
+  { fr: "vouloir", es: "querer", cat: "Verbes" },
+  { fr: "devoir (falloir)", es: "deber", cat: "Verbes" },
+  { fr: "savoir", es: "saber", cat: "Verbes" },
+  { fr: "connaître", es: "conocer", cat: "Verbes" },
+  { fr: "parler", es: "hablar", cat: "Verbes" },
+  { fr: "dire", es: "decir", cat: "Verbes" },
+  { fr: "manger", es: "comer", cat: "Verbes" },
+  { fr: "boire", es: "beber", cat: "Verbes" },
+  { fr: "dormir", es: "dormir", cat: "Verbes" },
+  { fr: "vivre", es: "vivir", cat: "Verbes" },
+  { fr: "voir", es: "ver", cat: "Verbes" },
+  { fr: "regarder", es: "mirar", cat: "Verbes" },
+  { fr: "écouter", es: "escuchar", cat: "Verbes" },
+  { fr: "penser", es: "pensar", cat: "Verbes" },
+  { fr: "croire", es: "creer", cat: "Verbes" },
+  { fr: "comprendre", es: "entender", cat: "Verbes" },
+  { fr: "expliquer", es: "explicar", cat: "Verbes" },
+  { fr: "préférer", es: "preferir", cat: "Verbes" },
+  { fr: "aimer (plaire)", es: "gustar", cat: "Verbes" },
+  { fr: "adorer", es: "encantar", cat: "Verbes" },
+  { fr: "aider", es: "ayudar", cat: "Verbes" },
+  { fr: "chercher", es: "buscar", cat: "Verbes" },
+  { fr: "trouver", es: "encontrar", cat: "Verbes" },
+  { fr: "acheter", es: "comprar", cat: "Verbes" },
+  { fr: "payer", es: "pagar", cat: "Verbes" },
+  { fr: "vendre", es: "vender", cat: "Verbes" },
+  { fr: "donner", es: "dar", cat: "Verbes" },
+  { fr: "prendre", es: "tomar", cat: "Verbes" },
+  { fr: "laisser", es: "dejar", cat: "Verbes" },
+  { fr: "porter (transporter)", es: "llevar", cat: "Verbes" },
+  { fr: "apporter", es: "traer", cat: "Verbes" },
+  { fr: "envoyer", es: "enviar", cat: "Verbes" },
+  { fr: "recevoir", es: "recibir", cat: "Verbes" },
+  { fr: "utiliser", es: "usar", cat: "Verbes" },
+  { fr: "avoir besoin de", es: "necesitar", cat: "Verbes" },
+  { fr: "travailler", es: "trabajar", cat: "Verbes" },
+  { fr: "étudier", es: "estudiar", cat: "Verbes" },
+  { fr: "apprendre", es: "aprender", cat: "Verbes" },
+  { fr: "enseigner / montrer", es: "enseñar", cat: "Verbes" },
+  { fr: "écrire", es: "escribir", cat: "Verbes" },
+  { fr: "lire", es: "leer", cat: "Verbes" },
+  { fr: "appeler", es: "llamar", cat: "Verbes" },
+  { fr: "commencer", es: "empezar", cat: "Verbes" },
+  { fr: "finir", es: "acabar", cat: "Verbes" },
+  { fr: "terminer", es: "terminar", cat: "Verbes" },
+  { fr: "attendre / espérer", es: "esperar", cat: "Verbes" },
+  { fr: "jouer", es: "jugar", cat: "Verbes" },
+  { fr: "gagner", es: "ganar", cat: "Verbes" },
+  { fr: "perdre", es: "perder", cat: "Verbes" },
+  { fr: "courir", es: "correr", cat: "Verbes" },
+  { fr: "marcher", es: "caminar", cat: "Verbes" },
+  { fr: "arriver", es: "llegar", cat: "Verbes" },
+  { fr: "sortir", es: "salir", cat: "Verbes" },
+  { fr: "entrer", es: "entrar", cat: "Verbes" },
+  { fr: "passer", es: "pasar", cat: "Verbes" },
+  { fr: "revenir", es: "volver", cat: "Verbes" },
+  { fr: "voyager", es: "viajar", cat: "Verbes" },
+  { fr: "ouvrir", es: "abrir", cat: "Verbes" },
+  { fr: "fermer", es: "cerrar", cat: "Verbes" },
+  { fr: "oublier", es: "olvidar", cat: "Verbes" },
+  { fr: "se rappeler", es: "recordar", cat: "Verbes" },
+  { fr: "cuisiner", es: "cocinar", cat: "Verbes" },
+  { fr: "se lever", es: "levantarse", cat: "Verbes" },
+  { fr: "se laver", es: "lavarse", cat: "Verbes" },
+  { fr: "s'appeler", es: "llamarse", cat: "Verbes" },
+  { fr: "rester", es: "quedarse", cat: "Verbes" },
+  { fr: "mettre / poser", es: "poner", cat: "Verbes" },
+  { fr: "sortir (de vacances)", es: "irse", cat: "Verbes" },
+  { fr: "demander (qqch)", es: "pedir", cat: "Verbes" },
+  { fr: "demander (une question)", es: "preguntar", cat: "Verbes" },
+  { fr: "répondre", es: "responder", cat: "Verbes" },
+  { fr: "changer", es: "cambiar", cat: "Verbes" },
+  { fr: "essayer", es: "intentar", cat: "Verbes" },
+  // Famille
+  { fr: "père", es: "padre", cat: "Famille" },
+  { fr: "mère", es: "madre", cat: "Famille" },
+  { fr: "parents", es: "padres", cat: "Famille" },
+  { fr: "frère", es: "hermano", cat: "Famille" },
+  { fr: "sœur", es: "hermana", cat: "Famille" },
+  { fr: "fils", es: "hijo", cat: "Famille" },
+  { fr: "fille (enfant)", es: "hija", cat: "Famille" },
+  { fr: "ami", es: "amigo", cat: "Famille" },
+  { fr: "amie", es: "amiga", cat: "Famille" },
+  { fr: "grand-père", es: "abuelo", cat: "Famille" },
+  { fr: "grand-mère", es: "abuela", cat: "Famille" },
+  { fr: "oncle", es: "tío", cat: "Famille" },
+  { fr: "tante", es: "tía", cat: "Famille" },
+  { fr: "cousin", es: "primo", cat: "Famille" },
+  { fr: "mari", es: "marido", cat: "Famille" },
+  { fr: "femme (épouse)", es: "mujer", cat: "Famille" },
+  { fr: "petit ami", es: "novio", cat: "Famille" },
+  { fr: "petite amie", es: "novia", cat: "Famille" },
+  { fr: "épouse", es: "esposa", cat: "Famille" },
+  { fr: "cousine", es: "prima", cat: "Famille" },
+  { fr: "neveu", es: "sobrino", cat: "Famille" },
+  { fr: "nièce", es: "sobrina", cat: "Famille" },
+  { fr: "petit-fils", es: "nieto", cat: "Famille" },
+  { fr: "petite-fille", es: "nieta", cat: "Famille" },
+  { fr: "beau-père (parent)", es: "suegro", cat: "Famille" },
+  { fr: "belle-mère (parent)", es: "suegra", cat: "Famille" },
+  { fr: "beau-frère", es: "cuñado", cat: "Famille" },
+  { fr: "belle-sœur", es: "cuñada", cat: "Famille" },
+  { fr: "gendre", es: "yerno", cat: "Famille" },
+  { fr: "belle-fille (bru)", es: "nuera", cat: "Famille" },
+  { fr: "bébé", es: "bebé", cat: "Famille" },
+  { fr: "jumeau", es: "gemelo", cat: "Famille" },
+  { fr: "jumelle", es: "gemela", cat: "Famille" },
+  { fr: "enfants (progéniture)", es: "hijos", cat: "Famille" },
+  { fr: "famille", es: "familia", cat: "Famille" },
+  { fr: "couple", es: "pareja", cat: "Famille" },
+  { fr: "arrière-grand-père", es: "bisabuelo", cat: "Famille" },
+  { fr: "parrain", es: "padrino", cat: "Famille" },
+  { fr: "marraine", es: "madrina", cat: "Famille" },
+  { fr: "beau-fils (enfant du conjoint)", es: "hijastro", cat: "Famille" },
+  // Quotidien
+  { fr: "maison", es: "casa", cat: "Quotidien" },
+  { fr: "travail", es: "trabajo", cat: "Quotidien" },
+  { fr: "école", es: "escuela", cat: "Quotidien" },
+  { fr: "rue", es: "calle", cat: "Quotidien" },
+  { fr: "ville", es: "ciudad", cat: "Quotidien" },
+  { fr: "pays", es: "país", cat: "Quotidien" },
+  { fr: "monde", es: "mundo", cat: "Quotidien" },
+  { fr: "argent", es: "dinero", cat: "Quotidien" },
+  { fr: "eau", es: "agua", cat: "Quotidien" },
+  { fr: "nourriture / repas", es: "comida", cat: "Quotidien" },
+  { fr: "voiture", es: "coche", cat: "Quotidien" },
+  { fr: "clé", es: "llave", cat: "Quotidien" },
+  { fr: "téléphone", es: "teléfono", cat: "Quotidien" },
+  { fr: "toilettes", es: "baño", cat: "Quotidien" },
+  { fr: "projet", es: "proyecto", cat: "Quotidien" },
+  { fr: "restaurant", es: "restaurante", cat: "Quotidien" },
+  { fr: "pain", es: "pan", cat: "Quotidien" },
+  { fr: "café", es: "café", cat: "Quotidien" },
+  { fr: "lait", es: "leche", cat: "Quotidien" },
+  { fr: "fromage", es: "queso", cat: "Quotidien" },
+  { fr: "viande", es: "carne", cat: "Quotidien" },
+  { fr: "poisson", es: "pescado", cat: "Quotidien" },
+  { fr: "fruit", es: "fruta", cat: "Quotidien" },
+  { fr: "légume", es: "verdura", cat: "Quotidien" },
+  { fr: "livre", es: "libro", cat: "Quotidien" },
+  { fr: "musique", es: "música", cat: "Quotidien" },
+  { fr: "film", es: "película", cat: "Quotidien" },
+  { fr: "vie", es: "vida", cat: "Quotidien" },
+  { fr: "chose", es: "cosa", cat: "Quotidien" },
+  { fr: "gens", es: "gente", cat: "Quotidien" },
+  { fr: "personne (individu)", es: "persona", cat: "Quotidien" },
+  { fr: "enfant", es: "niño", cat: "Quotidien" },
+  { fr: "homme", es: "hombre", cat: "Quotidien" },
+  { fr: "femme (personne)", es: "mujer", cat: "Quotidien" },
+  { fr: "vêtement", es: "ropa", cat: "Quotidien" },
+  { fr: "chaussure", es: "zapato", cat: "Quotidien" },
+  { fr: "sac", es: "bolso", cat: "Quotidien" },
+  { fr: "ordinateur", es: "ordenador", cat: "Quotidien" },
+  { fr: "papier", es: "papel", cat: "Quotidien" },
+  { fr: "cadeau", es: "regalo", cat: "Quotidien" },
+  { fr: "problème", es: "problema", cat: "Quotidien" },
+  { fr: "temps (qui passe)", es: "tiempo", cat: "Quotidien" },
+  // Maison
+  { fr: "table", es: "mesa", cat: "Maison" },
+  { fr: "chaise", es: "silla", cat: "Maison" },
+  { fr: "lit", es: "cama", cat: "Maison" },
+  { fr: "porte", es: "puerta", cat: "Maison" },
+  { fr: "fenêtre", es: "ventana", cat: "Maison" },
+  { fr: "cuisine", es: "cocina", cat: "Maison" },
+  { fr: "chambre", es: "habitación", cat: "Maison" },
+  { fr: "salon", es: "salón", cat: "Maison" },
+  { fr: "jardin", es: "jardín", cat: "Maison" },
+  { fr: "chambre à coucher", es: "dormitorio", cat: "Maison" },
+  { fr: "couloir", es: "pasillo", cat: "Maison" },
+  { fr: "escalier", es: "escalera", cat: "Maison" },
+  { fr: "toit", es: "tejado", cat: "Maison" },
+  { fr: "plafond", es: "techo", cat: "Maison" },
+  { fr: "sol", es: "suelo", cat: "Maison" },
+  { fr: "mur", es: "pared", cat: "Maison" },
+  { fr: "meuble", es: "mueble", cat: "Maison" },
+  { fr: "canapé", es: "sofá", cat: "Maison" },
+  { fr: "armoire", es: "armario", cat: "Maison" },
+  { fr: "étagère", es: "estante", cat: "Maison" },
+  { fr: "frigo", es: "nevera", cat: "Maison" },
+  { fr: "four", es: "horno", cat: "Maison" },
+  { fr: "évier", es: "fregadero", cat: "Maison" },
+  { fr: "douche", es: "ducha", cat: "Maison" },
+  { fr: "baignoire", es: "bañera", cat: "Maison" },
+  { fr: "miroir", es: "espejo", cat: "Maison" },
+  { fr: "lampe", es: "lámpara", cat: "Maison" },
+  { fr: "rideau", es: "cortina", cat: "Maison" },
+  { fr: "tapis", es: "alfombra", cat: "Maison" },
+  { fr: "couverture", es: "manta", cat: "Maison" },
+  { fr: "oreiller", es: "almohada", cat: "Maison" },
+  { fr: "tiroir", es: "cajón", cat: "Maison" },
+  { fr: "garage", es: "garaje", cat: "Maison" },
+  { fr: "lave-linge", es: "lavadora", cat: "Maison" },
+  // Lieux
+  { fr: "magasin", es: "tienda", cat: "Lieux" },
+  { fr: "marché", es: "mercado", cat: "Lieux" },
+  { fr: "banque", es: "banco", cat: "Lieux" },
+  { fr: "hôpital", es: "hospital", cat: "Lieux" },
+  { fr: "aéroport", es: "aeropuerto", cat: "Lieux" },
+  { fr: "gare", es: "estación", cat: "Lieux" },
+  { fr: "plage", es: "playa", cat: "Lieux" },
+  { fr: "parc", es: "parque", cat: "Lieux" },
+  { fr: "cinéma", es: "cine", cat: "Lieux" },
+  { fr: "musée", es: "museo", cat: "Lieux" },
+  { fr: "hôtel", es: "hotel", cat: "Lieux" },
+  { fr: "église", es: "iglesia", cat: "Lieux" },
+  { fr: "bibliothèque", es: "biblioteca", cat: "Lieux" },
+  { fr: "université", es: "universidad", cat: "Lieux" },
+  { fr: "pharmacie", es: "farmacia", cat: "Lieux" },
+  { fr: "bureau", es: "oficina", cat: "Lieux" },
+  { fr: "supermarché", es: "supermercado", cat: "Lieux" },
+  { fr: "place (square)", es: "plaza", cat: "Lieux" },
+  { fr: "campagne", es: "campo", cat: "Lieux" },
+  { fr: "quartier", es: "barrio", cat: "Lieux" },
+  // Corps
+  { fr: "tête", es: "cabeza", cat: "Corps" },
+  { fr: "main", es: "mano", cat: "Corps" },
+  { fr: "pied", es: "pie", cat: "Corps" },
+  { fr: "œil", es: "ojo", cat: "Corps" },
+  { fr: "bouche", es: "boca", cat: "Corps" },
+  { fr: "cœur", es: "corazón", cat: "Corps" },
+  { fr: "bras", es: "brazo", cat: "Corps" },
+  { fr: "jambe", es: "pierna", cat: "Corps" },
+  { fr: "dos", es: "espalda", cat: "Corps" },
+  { fr: "cheveux", es: "pelo", cat: "Corps" },
+  { fr: "visage", es: "cara", cat: "Corps" },
+  { fr: "nez", es: "nariz", cat: "Corps" },
+  { fr: "oreille", es: "oreja", cat: "Corps" },
+  { fr: "dent", es: "diente", cat: "Corps" },
+  { fr: "langue", es: "lengua", cat: "Corps" },
+  { fr: "cou", es: "cuello", cat: "Corps" },
+  { fr: "gorge", es: "garganta", cat: "Corps" },
+  { fr: "épaule", es: "hombro", cat: "Corps" },
+  { fr: "coude", es: "codo", cat: "Corps" },
+  { fr: "poignet", es: "muñeca", cat: "Corps" },
+  { fr: "doigt", es: "dedo", cat: "Corps" },
+  { fr: "ongle", es: "uña", cat: "Corps" },
+  { fr: "ventre", es: "vientre", cat: "Corps" },
+  { fr: "estomac", es: "estómago", cat: "Corps" },
+  { fr: "genou", es: "rodilla", cat: "Corps" },
+  { fr: "cheville", es: "tobillo", cat: "Corps" },
+  { fr: "peau", es: "piel", cat: "Corps" },
+  { fr: "sang", es: "sangre", cat: "Corps" },
+  { fr: "os", es: "hueso", cat: "Corps" },
+  { fr: "cerveau", es: "cerebro", cat: "Corps" },
+  { fr: "poitrine", es: "pecho", cat: "Corps" },
+  { fr: "lèvre", es: "labio", cat: "Corps" },
+  { fr: "joue", es: "mejilla", cat: "Corps" },
+  { fr: "front", es: "frente", cat: "Corps" },
+  { fr: "menton", es: "barbilla", cat: "Corps" },
+  { fr: "poumon", es: "pulmón", cat: "Corps" },
+  // Nature
+  { fr: "arbre", es: "árbol", cat: "Nature" },
+  { fr: "fleur", es: "flor", cat: "Nature" },
+  { fr: "mer", es: "mar", cat: "Nature" },
+  { fr: "montagne", es: "montaña", cat: "Nature" },
+  { fr: "rivière", es: "río", cat: "Nature" },
+  { fr: "ciel", es: "cielo", cat: "Nature" },
+  { fr: "lune", es: "luna", cat: "Nature" },
+  { fr: "étoile", es: "estrella", cat: "Nature" },
+  { fr: "terre", es: "tierra", cat: "Nature" },
+  { fr: "vague", es: "ola", cat: "Nature" },
+  { fr: "forêt", es: "bosque", cat: "Nature" },
+  { fr: "lac", es: "lago", cat: "Nature" },
+  { fr: "plante", es: "planta", cat: "Nature" },
+  { fr: "herbe", es: "hierba", cat: "Nature" },
+  { fr: "pierre", es: "piedra", cat: "Nature" },
+  { fr: "animal", es: "animal", cat: "Nature" },
+  { fr: "feu", es: "fuego", cat: "Nature" },
+  // Temps
+  { fr: "aujourd'hui", es: "hoy", cat: "Temps" },
+  { fr: "hier", es: "ayer", cat: "Temps" },
+  { fr: "demain", es: "mañana", cat: "Temps" },
+  { fr: "jour", es: "día", cat: "Temps" },
+  { fr: "semaine", es: "semana", cat: "Temps" },
+  { fr: "mois", es: "mes", cat: "Temps" },
+  { fr: "année", es: "año", cat: "Temps" },
+  { fr: "heure", es: "hora", cat: "Temps" },
+  { fr: "minute", es: "minuto", cat: "Temps" },
+  { fr: "moment", es: "momento", cat: "Temps" },
+  { fr: "soir / après-midi", es: "tarde", cat: "Temps" },
+  { fr: "nuit", es: "noche", cat: "Temps" },
+  { fr: "matin", es: "mañana (la)", cat: "Temps" },
+  { fr: "midi", es: "mediodía", cat: "Temps" },
+  { fr: "minuit", es: "medianoche", cat: "Temps" },
+  { fr: "hier soir", es: "anoche", cat: "Temps" },
+  { fr: "avant-hier", es: "anteayer", cat: "Temps" },
+  { fr: "seconde", es: "segundo", cat: "Temps" },
+  { fr: "siècle", es: "siglo", cat: "Temps" },
+  { fr: "week-end", es: "fin de semana", cat: "Temps" },
+  // Jours
+  { fr: "lundi", es: "lunes", cat: "Jours" },
+  { fr: "mardi", es: "martes", cat: "Jours" },
+  { fr: "mercredi", es: "miércoles", cat: "Jours" },
+  { fr: "jeudi", es: "jueves", cat: "Jours" },
+  { fr: "vendredi", es: "viernes", cat: "Jours" },
+  { fr: "samedi", es: "sábado", cat: "Jours" },
+  { fr: "dimanche", es: "domingo", cat: "Jours" },
+  { fr: "jour (de la semaine)", es: "día laborable", cat: "Jours" },
+  { fr: "jour férié", es: "día festivo", cat: "Jours" },
+  { fr: "veille / avant-veille", es: "víspera", cat: "Jours" },
+  { fr: "quotidien (adj.)", es: "diario", cat: "Jours" },
+  { fr: "hebdomadaire", es: "semanal", cat: "Jours" },
+  { fr: "le lendemain", es: "el día siguiente", cat: "Jours" },
+  // Nombres
+  { fr: "un", es: "uno", cat: "Nombres" },
+  { fr: "deux", es: "dos", cat: "Nombres" },
+  { fr: "trois", es: "tres", cat: "Nombres" },
+  { fr: "quatre", es: "cuatro", cat: "Nombres" },
+  { fr: "cinq", es: "cinco", cat: "Nombres" },
+  { fr: "six", es: "seis", cat: "Nombres" },
+  { fr: "sept", es: "siete", cat: "Nombres" },
+  { fr: "huit", es: "ocho", cat: "Nombres" },
+  { fr: "neuf (9)", es: "nueve", cat: "Nombres" },
+  { fr: "dix", es: "diez", cat: "Nombres" },
+  { fr: "onze", es: "once", cat: "Nombres" },
+  { fr: "douze", es: "doce", cat: "Nombres" },
+  { fr: "quinze", es: "quince", cat: "Nombres" },
+  { fr: "vingt", es: "veinte", cat: "Nombres" },
+  { fr: "trente", es: "treinta", cat: "Nombres" },
+  { fr: "cinquante", es: "cincuenta", cat: "Nombres" },
+  { fr: "cent", es: "cien", cat: "Nombres" },
+  { fr: "mille", es: "mil", cat: "Nombres" },
+  { fr: "treize", es: "trece", cat: "Nombres" },
+  { fr: "quatorze", es: "catorce", cat: "Nombres" },
+  { fr: "seize", es: "dieciséis", cat: "Nombres" },
+  { fr: "dix-sept", es: "diecisiete", cat: "Nombres" },
+  { fr: "quarante", es: "cuarenta", cat: "Nombres" },
+  { fr: "soixante", es: "sesenta", cat: "Nombres" },
+  { fr: "quatre-vingts", es: "ochenta", cat: "Nombres" },
+  { fr: "deux cents", es: "doscientos", cat: "Nombres" },
+  { fr: "un million", es: "un millón", cat: "Nombres" },
+  // Couleurs
+  { fr: "rouge", es: "rojo", cat: "Couleurs" },
+  { fr: "bleu", es: "azul", cat: "Couleurs" },
+  { fr: "vert", es: "verde", cat: "Couleurs" },
+  { fr: "jaune", es: "amarillo", cat: "Couleurs" },
+  { fr: "noir", es: "negro", cat: "Couleurs" },
+  { fr: "blanc", es: "blanco", cat: "Couleurs" },
+  { fr: "gris", es: "gris", cat: "Couleurs" },
+  { fr: "marron", es: "marrón", cat: "Couleurs" },
+  { fr: "violet", es: "morado", cat: "Couleurs" },
+  { fr: "orange", es: "naranja", cat: "Couleurs" },
+  { fr: "rose", es: "rosa", cat: "Couleurs" },
+  { fr: "clair", es: "claro", cat: "Couleurs" },
+  { fr: "foncé", es: "oscuro", cat: "Couleurs" },
+  { fr: "violet (violeta)", es: "violeta", cat: "Couleurs" },
+  { fr: "beige", es: "beige", cat: "Couleurs" },
+  { fr: "doré", es: "dorado", cat: "Couleurs" },
+  { fr: "argenté", es: "plateado", cat: "Couleurs" },
+  { fr: "turquoise", es: "turquesa", cat: "Couleurs" },
+  { fr: "coloré", es: "colorido", cat: "Couleurs" },
+  // Météo
+  { fr: "soleil", es: "sol", cat: "Météo" },
+  { fr: "pluie", es: "lluvia", cat: "Météo" },
+  { fr: "nuage", es: "nube", cat: "Météo" },
+  { fr: "vent", es: "viento", cat: "Météo" },
+  { fr: "neige", es: "nieve", cat: "Météo" },
+  { fr: "chaleur", es: "calor", cat: "Météo" },
+  { fr: "froid", es: "frío", cat: "Météo" },
+  { fr: "orage", es: "tormenta", cat: "Météo" },
+  { fr: "brouillard", es: "niebla", cat: "Météo" },
+  { fr: "ciel dégagé", es: "despejado", cat: "Météo" },
+  { fr: "nuageux", es: "nublado", cat: "Météo" },
+  { fr: "humide", es: "húmedo", cat: "Météo" },
+  { fr: "sec", es: "seco", cat: "Météo" },
+  { fr: "température", es: "temperatura", cat: "Météo" },
+  { fr: "glace / gel", es: "hielo", cat: "Météo" },
+  // Adjectifs
+  { fr: "grand", es: "grande", cat: "Adjectifs" },
+  { fr: "petit", es: "pequeño", cat: "Adjectifs" },
+  { fr: "haut / grand (taille)", es: "alto", cat: "Adjectifs" },
+  { fr: "bas / petit (taille)", es: "bajo", cat: "Adjectifs" },
+  { fr: "long", es: "largo", cat: "Adjectifs" },
+  { fr: "court", es: "corto", cat: "Adjectifs" },
+  { fr: "bon", es: "bueno", cat: "Adjectifs" },
+  { fr: "mauvais", es: "malo", cat: "Adjectifs" },
+  { fr: "joli / beau", es: "bonito", cat: "Adjectifs" },
+  { fr: "beau (personne)", es: "guapo", cat: "Adjectifs" },
+  { fr: "moche", es: "feo", cat: "Adjectifs" },
+  { fr: "facile", es: "fácil", cat: "Adjectifs" },
+  { fr: "difficile", es: "difícil", cat: "Adjectifs" },
+  { fr: "nouveau", es: "nuevo", cat: "Adjectifs" },
+  { fr: "vieux", es: "viejo", cat: "Adjectifs" },
+  { fr: "jeune", es: "joven", cat: "Adjectifs" },
+  { fr: "ancien", es: "antiguo", cat: "Adjectifs" },
+  { fr: "fatigué", es: "cansado", cat: "Adjectifs" },
+  { fr: "content / heureux", es: "contento", cat: "Adjectifs" },
+  { fr: "heureux", es: "feliz", cat: "Adjectifs" },
+  { fr: "triste", es: "triste", cat: "Adjectifs" },
+  { fr: "malade", es: "enfermo", cat: "Adjectifs" },
+  { fr: "sûr", es: "seguro", cat: "Adjectifs" },
+  { fr: "cher (prix)", es: "caro", cat: "Adjectifs" },
+  { fr: "bon marché", es: "barato", cat: "Adjectifs" },
+  { fr: "rapide", es: "rápido", cat: "Adjectifs" },
+  { fr: "lent", es: "lento", cat: "Adjectifs" },
+  { fr: "calme / tranquille", es: "tranquilo", cat: "Adjectifs" },
+  { fr: "confortable", es: "cómodo", cat: "Adjectifs" },
+  { fr: "meilleur", es: "mejor", cat: "Adjectifs" },
+  { fr: "pire", es: "peor", cat: "Adjectifs" },
+  { fr: "seul", es: "solo", cat: "Adjectifs" },
+  { fr: "propre", es: "limpio", cat: "Adjectifs" },
+  { fr: "sale", es: "sucio", cat: "Adjectifs" },
+  { fr: "fort", es: "fuerte", cat: "Adjectifs" },
+  { fr: "plein", es: "lleno", cat: "Adjectifs" },
+  { fr: "vide", es: "vacío", cat: "Adjectifs" },
+  { fr: "chaud", es: "caliente", cat: "Adjectifs" },
+  { fr: "intéressant", es: "interesante", cat: "Adjectifs" },
+  { fr: "ennuyeux", es: "aburrido", cat: "Adjectifs" },
+  { fr: "amusant / drôle", es: "divertido", cat: "Adjectifs" },
+  { fr: "important", es: "importante", cat: "Adjectifs" },
+  { fr: "sympa", es: "simpático", cat: "Adjectifs" },
+  { fr: "intelligent", es: "inteligente", cat: "Adjectifs" },
+  { fr: "prêt", es: "listo", cat: "Adjectifs" },
+  { fr: "occupé", es: "ocupado", cat: "Adjectifs" },
+  { fr: "libre", es: "libre", cat: "Adjectifs" },
+  { fr: "gros / épais", es: "gordo", cat: "Adjectifs" },
+  { fr: "mince", es: "delgado", cat: "Adjectifs" },
+  { fr: "large", es: "ancho", cat: "Adjectifs" },
+  { fr: "étroit", es: "estrecho", cat: "Adjectifs" },
+  { fr: "profond", es: "profundo", cat: "Adjectifs" },
+  { fr: "dangereux", es: "peligroso", cat: "Adjectifs" },
+  { fr: "célèbre", es: "famoso", cat: "Adjectifs" },
+  { fr: "délicieux", es: "delicioso", cat: "Adjectifs" },
+  { fr: "trop (excès)", es: "demasiado", cat: "Adjectifs" },
+  // Adverbes
+  { fr: "maintenant", es: "ahora", cat: "Adverbes" },
+  { fr: "ensuite", es: "luego", cat: "Adverbes" },
+  { fr: "après", es: "después", cat: "Adverbes" },
+  { fr: "avant", es: "antes", cat: "Adverbes" },
+  { fr: "bientôt", es: "pronto", cat: "Adverbes" },
+  { fr: "tard", es: "tarde", cat: "Adverbes" },
+  { fr: "tôt", es: "temprano", cat: "Adverbes" },
+  { fr: "près", es: "cerca", cat: "Adverbes" },
+  { fr: "loin", es: "lejos", cat: "Adverbes" },
+  { fr: "ici", es: "aquí", cat: "Adverbes" },
+  { fr: "là-bas", es: "allí", cat: "Adverbes" },
+  { fr: "en haut", es: "arriba", cat: "Adverbes" },
+  { fr: "en bas", es: "abajo", cat: "Adverbes" },
+  { fr: "dedans", es: "dentro", cat: "Adverbes" },
+  { fr: "dehors", es: "fuera", cat: "Adverbes" },
+  { fr: "doucement", es: "despacio", cat: "Adverbes" },
+  { fr: "presque", es: "casi", cat: "Adverbes" },
+  { fr: "souvent", es: "a menudo", cat: "Adverbes" },
+  { fr: "toujours", es: "siempre", cat: "Adverbes" },
+  { fr: "jamais", es: "nunca", cat: "Adverbes" },
+  { fr: "encore / toujours", es: "todavía", cat: "Adverbes" },
+  { fr: "déjà", es: "ya", cat: "Adverbes" },
+  { fr: "quelquefois", es: "a veces", cat: "Adverbes" },
+  { fr: "vite / rapidement", es: "rápidamente", cat: "Adverbes" },
+  { fr: "lentement", es: "lentamente", cat: "Adverbes" },
+  { fr: "seulement", es: "solamente", cat: "Adverbes" },
+  { fr: "aussi (autant)", es: "tanto", cat: "Adverbes" },
+  { fr: "trop (adverbe)", es: "demasiado", cat: "Adverbes" },
+  { fr: "assez", es: "bastante", cat: "Adverbes" },
+  { fr: "ensemble", es: "juntos", cat: "Adverbes" },
+  { fr: "peut-être (adv.)", es: "quizá", cat: "Adverbes" },
+  // Interrogatifs
+  { fr: "quoi ?", es: "qué", cat: "Interrogatifs" },
+  { fr: "qui ?", es: "quién", cat: "Interrogatifs" },
+  { fr: "où ?", es: "dónde", cat: "Interrogatifs" },
+  { fr: "quand ?", es: "cuándo", cat: "Interrogatifs" },
+  { fr: "comment ?", es: "cómo", cat: "Interrogatifs" },
+  { fr: "lequel ?", es: "cuál", cat: "Interrogatifs" },
+  { fr: "pourquoi ?", es: "por qué", cat: "Interrogatifs" },
+  { fr: "combien ?", es: "cuánto", cat: "Interrogatifs" },
+  { fr: "où (vers où) ?", es: "adónde", cat: "Interrogatifs" },
+  { fr: "d'où ?", es: "de dónde", cat: "Interrogatifs" },
+  { fr: "lesquels ?", es: "cuáles", cat: "Interrogatifs" },
+  { fr: "combien (pluriel) ?", es: "cuántos", cat: "Interrogatifs" },
+  { fr: "pour quoi (but) ?", es: "para qué", cat: "Interrogatifs" },
+  { fr: "à quelle heure ?", es: "a qué hora", cat: "Interrogatifs" },
+  // Mots-outils
+  { fr: "il y a", es: "hay", cat: "Mots-outils" },
+  { fr: "sans", es: "sin", cat: "Mots-outils" },
+  { fr: "avec", es: "con", cat: "Mots-outils" },
+  { fr: "pour", es: "para", cat: "Mots-outils" },
+  { fr: "par / pour (cause)", es: "por", cat: "Mots-outils" },
+  { fr: "parce que", es: "porque", cat: "Mots-outils" },
+  { fr: "mais", es: "pero", cat: "Mots-outils" },
+  { fr: "alors", es: "entonces", cat: "Mots-outils" },
+  { fr: "aussi", es: "también", cat: "Mots-outils" },
+  { fr: "non plus", es: "tampoco", cat: "Mots-outils" },
+  { fr: "beaucoup", es: "mucho", cat: "Mots-outils" },
+  { fr: "très", es: "muy", cat: "Mots-outils" },
+  { fr: "plus", es: "más", cat: "Mots-outils" },
+  { fr: "moins", es: "menos", cat: "Mots-outils" },
+  { fr: "tout", es: "todo", cat: "Mots-outils" },
+  { fr: "rien", es: "nada", cat: "Mots-outils" },
+  { fr: "personne (négation)", es: "nadie", cat: "Mots-outils" },
+  { fr: "quelque chose", es: "algo", cat: "Mots-outils" },
+  { fr: "quelqu'un", es: "alguien", cat: "Mots-outils" },
+  { fr: "ce / cette (m)", es: "este", cat: "Mots-outils" },
+  { fr: "cette (f)", es: "esta", cat: "Mots-outils" },
+  { fr: "ses", es: "sus", cat: "Mots-outils" },
+  { fr: "mon / ma", es: "mi", cat: "Mots-outils" },
+  { fr: "son / sa", es: "su", cat: "Mots-outils" },
+  { fr: "et", es: "y", cat: "Mots-outils" },
+  { fr: "ou", es: "o", cat: "Mots-outils" },
+  { fr: "à", es: "a", cat: "Mots-outils" },
+  { fr: "à / dans", es: "en", cat: "Mots-outils" },
+  { fr: "de", es: "de", cat: "Mots-outils" },
+  { fr: "que", es: "que", cat: "Mots-outils" },
+  { fr: "si (condition)", es: "si", cat: "Mots-outils" },
+  { fr: "sur", es: "sobre", cat: "Mots-outils" },
+  { fr: "sous", es: "bajo", cat: "Mots-outils" },
+  { fr: "entre", es: "entre", cat: "Mots-outils" },
+  { fr: "depuis", es: "desde", cat: "Mots-outils" },
+  { fr: "jusqu'à", es: "hasta", cat: "Mots-outils" },
+  { fr: "pendant", es: "durante", cat: "Mots-outils" },
+  { fr: "contre", es: "contra", cat: "Mots-outils" },
+  { fr: "selon", es: "según", cat: "Mots-outils" },
+  { fr: "ces (m. pl.)", es: "estos", cat: "Mots-outils" },
+  { fr: "ces (f. pl.)", es: "estas", cat: "Mots-outils" },
+  // Expressions
+  { fr: "avoir faim", es: "tener hambre", cat: "Expressions" },
+  { fr: "avoir soif", es: "tener sed", cat: "Expressions" },
+  { fr: "avoir sommeil", es: "tener sueño", cat: "Expressions" },
+  { fr: "avoir peur", es: "tener miedo", cat: "Expressions" },
+  { fr: "avoir raison", es: "tener razón", cat: "Expressions" },
+  { fr: "avoir chaud", es: "tener calor", cat: "Expressions" },
+  { fr: "avoir froid", es: "tener frío", cat: "Expressions" },
+  { fr: "devoir (faire qqch)", es: "tener que", cat: "Expressions" },
+  { fr: "il faut", es: "hay que", cat: "Expressions" },
+  { fr: "je m'appelle", es: "me llamo", cat: "Expressions" },
+  { fr: "comment ça va ?", es: "¿cómo estás?", cat: "Expressions" },
+  { fr: "avoir envie de", es: "tener ganas de", cat: "Expressions" },
+  { fr: "être en train de", es: "estar + gerundio", cat: "Expressions" },
+  { fr: "il y a (temps écoulé)", es: "hace", cat: "Expressions" },
+  { fr: "venir de (faire)", es: "acabar de", cat: "Expressions" },
+  { fr: "s'il te plaît (fam.)", es: "porfa", cat: "Expressions" },
+  { fr: "ça m'est égal", es: "me da igual", cat: "Expressions" },
+  { fr: "ça vaut la peine", es: "vale la pena", cat: "Expressions" },
+  { fr: "faire attention", es: "tener cuidado", cat: "Expressions" },
+];
+
+/* ==========================================================
+   MOTS PERSO (ajoutés par l'IA ou à la main) — stockés à part
+   ========================================================== */
+const CUSTOM_WORDS_KEY = 'customWords';
+
+function loadCustomWords() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CUSTOM_WORDS_KEY)) || [];
+    return raw
+      .filter(w => w && typeof w.fr === 'string' && typeof w.es === 'string')
+      .map(w => ({ fr: w.fr.trim(), es: w.es.trim(), cat: (w.cat || 'Perso').trim(), custom: true }));
+  } catch (e) { return []; }
+}
+let customWords = loadCustomWords();
+
+/* wordBank = la banque d'origine + tes ajouts. Tout le reste de l'app lit cette variable. */
+let wordBank = BASE_WORD_BANK.concat(customWords);
+
+function saveCustomWords() {
+  localStorage.setItem(CUSTOM_WORDS_KEY, JSON.stringify(
+    customWords.map(w => ({ fr: w.fr, es: w.es, cat: w.cat }))
+  ));
+}
+function rebuildWordBank() { wordBank = BASE_WORD_BANK.concat(customWords); }
+
+/* Recharge toutes les vues après une modification de la banque de mots. */
+function refreshAfterBankChange() {
+  rebuildWordBank();
+  populateCategories();
+  resetFlashcards();
+  restartChallenge();
+  restartQcm();
+  renderCustomWords();
+}
+
+const sentenceTemplates = [
+  { fr: "Je suis {ADJ_M}.", es: "Estoy {ADJ_M}.", slots: { ADJ_M: ["cansado", "contento", "seguro", "solo"] }, dict: { cansado: "fatigué", contento: "content", seguro: "sûr", solo: "seul" } },
+  { fr: "J'ai {NOM_ETAT}.", es: "Tengo {NOM_ETAT}.", slots: { NOM_ETAT: ["hambre", "sed", "sueño", "miedo"] }, dict: { hambre: "faim", sed: "soif", sueño: "sommeil", miedo: "peur" } },
+  { fr: "Je veux {NOM_OBJ}.", es: "Quiero {NOM_OBJ}.", slots: { NOM_OBJ: ["agua", "comida", "un coche", "dinero"] }, dict: { agua: "de l'eau", comida: "de la nourriture", "un coche": "une voiture", dinero: "de l'argent" } },
+  { fr: "Aujourd'hui je travaille.", es: "Hoy trabajo." },
+  { fr: "Demain je vais à Madrid.", es: "Mañana voy a Madrid." },
+  { fr: "Nous vivons à Paris.", es: "Vivimos en París." },
+  { fr: "Mon frère mange à la maison.", es: "Mi hermano come en casa." },
+  { fr: "Ma sœur ne peut pas venir.", es: "Mi hermana no puede venir." },
+  { fr: "Je ne comprends pas.", es: "No entiendo." },
+  { fr: "J'ai besoin d'aide.", es: "Necesito ayuda." },
+  { fr: "Je ne sais pas.", es: "No sé." },
+  { fr: "Je cherche mon téléphone.", es: "Busco mi teléfono." },
+  { fr: "Cette maison est très {ADJ}.", es: "Esta casa es muy {ADJ}.", slots: { ADJ: ["grande", "bonita", "cara", "pequeña"] }, dict: { grande: "grande", bonita: "jolie", cara: "chère", pequeña: "petite" } },
+  { fr: "Mon frère veut acheter une voiture, mais il n'a pas d'argent.", es: "Mi hermano quiere comprar un coche, pero no tiene dinero." },
+  { fr: "Pourquoi veux-tu boire de l'eau ?", es: "¿Por qué quieres beber agua?" },
+  { fr: "Je ne peux pas venir aujourd'hui parce que je travaille.", es: "No puedo venir hoy porque trabajo." },
+  { fr: "Ma sœur a peur parce qu'elle est seule.", es: "Mi hermana tiene miedo porque está sola." },
+  { fr: "Mes amis vivent à Madrid, mais ils viennent souvent à Paris.", es: "Mis amigos viven en Madrid, pero vienen a menudo a París." },
+  { fr: "Je peux le faire, mais je ne veux pas le faire aujourd'hui.", es: "Puedo hacerlo, pero no quiero hacerlo hoy." },
+  { fr: "Cette voiture est petite, mais elle est très rapide.", es: "Este coche es pequeño, pero es muy rápido." },
+  { fr: "Cette ville est plus grande que Madrid.", es: "Esta ciudad es más grande que Madrid." },
+  { fr: "Je cherche un restaurant près d'ici.", es: "Busco un restaurante cerca de aquí." },
+  { fr: "Tu peux ouvrir la porte, s'il te plaît ?", es: "¿Puedes abrir la puerta, por favor?" },
+  { fr: "Nous devons partir maintenant.", es: "Tenemos que salir ahora." },
+  { fr: "J'apprends l'espagnol.", es: "Estoy aprendiendo español." },
+  { fr: "Que fais-tu demain ?", es: "¿Qué haces mañana?" },
+  { fr: "Où habites-tu ?", es: "¿Dónde vives?" },
+];
+
+/* ==========================================================
+   BANQUE DE QUIZ PAR THÈME
+   ========================================================== */
+const quizBank = {
+  'present-reg': {
+    title: '📗 Quiz - Présent des verbes réguliers',
+    questions: [
+      { q: "Yo ___ español. (hablar)", options: ["hablo", "hablas", "habla", "hablamos"], answer: 0, explain: "Yo hablo — 1re personne : radical + -o." },
+      { q: "Nosotros ___ pan. (comer)", options: ["como", "comes", "comemos", "comen"], answer: 2, explain: "Nosotros comemos — pour -ER, on prend -emos." },
+      { q: "Ellos ___ en Madrid. (vivir)", options: ["vivo", "vives", "vivimos", "viven"], answer: 3, explain: "Ellos viven — pour -IR, 3e pers. pluriel = -en." },
+      { q: "Tú ___ mucho. (trabajar)", options: ["trabajo", "trabajas", "trabaja", "trabajan"], answer: 1, explain: "Tú trabajas — 2e pers. sing. de -AR = -as." },
+      { q: "Ella ___ agua. (beber)", options: ["bebo", "bebes", "bebe", "bebemos"], answer: 2, explain: "Ella bebe — 3e pers. sing. de -ER = -e." },
+      { q: "Vosotros ___ (estudiar)", options: ["estudio", "estudias", "estudiáis", "estudian"], answer: 2, explain: "Vosotros estudiáis — -AR à vosotros = -áis." },
+      { q: "Quelle est la terminaison de yo pour tous les verbes réguliers ?", options: ["-a", "-o", "-e", "-as"], answer: 1, explain: "Yo finit toujours par -o (sauf quelques irréguliers)." },
+      { q: "Nosotros vivimos. Quel groupe ?", options: ["-ar", "-er", "-ir", "irrégulier"], answer: 2, explain: "vivir → -ir, nosotros = -imos." },
+      { q: "Comment dit-on 'ils étudient' ?", options: ["estudian", "estudiamos", "estudia", "estudias"], answer: 0, explain: "Ellos estudian — -AR + ellos = -an." },
+      { q: "Comment dit-on 'j'apprends' ?", options: ["aprendes", "aprendo", "aprende", "aprendemos"], answer: 1, explain: "Yo aprendo — -ER + yo = -o." },
+    ]
+  },
+  'present-irr': {
+    title: '📕 Quiz - Verbes irréguliers',
+    questions: [
+      { q: "Yo ___ francés. (ser)", options: ["soy", "estoy", "es", "somos"], answer: 0, explain: "Yo soy — verbe SER, identité." },
+      { q: "Nosotros ___ cansados. (estar)", options: ["somos", "estamos", "sois", "están"], answer: 1, explain: "Nosotros estamos — état, verbe ESTAR." },
+      { q: "Ella ___ mucho dinero. (tener)", options: ["tengo", "tienes", "tiene", "tienen"], answer: 2, explain: "Ella tiene — 3e pers. sing. de tener." },
+      { q: "Yo ___ al cine. (ir)", options: ["voy", "vas", "va", "vamos"], answer: 0, explain: "Yo voy — verbe IR très irrégulier." },
+      { q: "Nosotros ___ comido. (haber)", options: ["han", "he", "hemos", "hay"], answer: 2, explain: "Hemos comido — auxiliaire haber pour passé composé." },
+      { q: "Yo ___ un pastel. (hacer)", options: ["hace", "hago", "haces", "hacen"], answer: 1, explain: "Yo hago — verbe hacer, forme -go typique." },
+      { q: "Ellos ___ a la fiesta. (venir)", options: ["vengo", "vienes", "viene", "vienen"], answer: 3, explain: "Ellos vienen — 3e pers. pl. de venir." },
+      { q: "Tú ___ la verdad. (decir)", options: ["digo", "dices", "dice", "decimos"], answer: 1, explain: "Tú dices — 2e pers. sing. de decir." },
+      { q: "Quelle forme utilise -go pour la 1ère personne ?", options: ["ser", "estar", "tener", "ir"], answer: 2, explain: "Tener → tengo. Comme venir, hacer, decir, salir." },
+      { q: "Comment dit-on 'nous allons' ?", options: ["van", "vamos", "vais", "voy"], answer: 1, explain: "Nosotros vamos." },
+    ]
+  },
+  'diphtongue': {
+    title: '🔀 Quiz - Verbes à diphtongue',
+    questions: [
+      { q: "Yo ___ un coche. (querer)", options: ["quero", "quiero", "quieres", "queremos"], answer: 1, explain: "e → ie : yo quiero." },
+      { q: "Nosotros ___ (querer)", options: ["quieremos", "quiero", "queremos", "queren"], answer: 2, explain: "Nosotros = pas de diphtongue → queremos." },
+      { q: "Yo ___ ir. (poder)", options: ["podo", "puedo", "puedes", "podemos"], answer: 1, explain: "o → ue : yo puedo." },
+      { q: "Nosotros ___ mucho. (dormir)", options: ["duermo", "duermes", "dormimos", "duermen"], answer: 2, explain: "Nosotros = pas de diphtongue → dormimos." },
+      { q: "Yo ___ un café. (pedir)", options: ["pedo", "pido", "pides", "pedimos"], answer: 1, explain: "e → i : yo pido." },
+      { q: "Ellos ___ estudiar. (preferir)", options: ["prefero", "prefiere", "preferimos", "prefieren"], answer: 3, explain: "e → ie : ellos prefieren." },
+      { q: "Quelles personnes n'ont PAS la diphtongue ?", options: ["yo, tú", "él, ella", "nosotros, vosotros", "ellos, ellas"], answer: 2, explain: "La 'boot' : nosotros et vosotros gardent le radical original." },
+      { q: "Yo ___ tarde. (volver)", options: ["volvo", "vuelvo", "vuelves", "volvemos"], answer: 1, explain: "o → ue : yo vuelvo." },
+      { q: "Ella ___ mucho. (pensar)", options: ["penso", "pienso", "piensa", "pensamos"], answer: 2, explain: "e → ie : ella piensa." },
+      { q: "Nosotros ___ (poder)", options: ["puedemos", "podemos", "pueden", "puedo"], answer: 1, explain: "Nosotros → pas de changement : podemos." },
+    ]
+  },
+  'past': {
+    title: '⏮️ Quiz - Passé composé',
+    questions: [
+      { q: "J'ai mangé.", options: ["He comido", "Ha comido", "Hemos comido", "Han comido"], answer: 0, explain: "Yo he comido — 1re pers. de haber." },
+      { q: "Nous avons travaillé.", options: ["Han trabajado", "He trabajado", "Hemos trabajado", "Ha trabajado"], answer: 2, explain: "Hemos trabajado." },
+      { q: "Le participe de 'hacer' est :", options: ["hacado", "hecho", "hacido", "hacado"], answer: 1, explain: "hacer → hecho (irrégulier)." },
+      { q: "Le participe de 'ver' est :", options: ["vido", "visto", "vado", "vuelto"], answer: 1, explain: "ver → visto (irrégulier)." },
+      { q: "Le participe de 'escribir' est :", options: ["escribido", "escrito", "escribado", "escribe"], answer: 1, explain: "escribir → escrito (irrégulier)." },
+      { q: "Elle a dit la vérité.", options: ["Ella ha dicho la verdad", "Ella ha decido la verdad", "Ella ha dicha la verdad", "Ella he dicho la verdad"], answer: 0, explain: "decir → dicho. Pas d'accord du participe." },
+      { q: "Le participe de 'comer' est :", options: ["comado", "comido", "comendo", "comío"], answer: 1, explain: "-er → -ido : comido." },
+      { q: "Quel auxiliaire pour le passé composé ?", options: ["tener", "haber", "ser", "estar"], answer: 1, explain: "Toujours HABER (jamais tener)." },
+      { q: "Comment dit-on 'nous avons vu' ?", options: ["Hemos vido", "Hemos visto", "Han visto", "He visto"], answer: 1, explain: "Hemos + visto." },
+      { q: "Est-ce que le participe s'accorde ?", options: ["Oui, avec le sujet", "Oui, avec l'objet", "Non, jamais", "Seulement au féminin"], answer: 2, explain: "Contrairement au français, le participe ne s'accorde JAMAIS." },
+    ]
+  },
+  'future': {
+    title: '⏭️ Quiz - Futur',
+    questions: [
+      { q: "Je vais manger (futur proche).", options: ["Voy comer", "Voy a comer", "Iré comer", "Comeré"], answer: 1, explain: "Futur proche = ir + a + infinitif." },
+      { q: "Nous allons travailler.", options: ["Vamos a trabajar", "Iremos trabajar", "Trabajaremos", "Vamos trabajar"], answer: 0, explain: "Vamos + a + trabajar." },
+      { q: "Je parlerai (futur simple).", options: ["hablaré", "hablará", "hablaría", "hablaba"], answer: 0, explain: "Yo hablaré — futur simple, radical + -é." },
+      { q: "Ils vivront.", options: ["viviremos", "vivirán", "vivirá", "vivieron"], answer: 1, explain: "Ellos vivirán." },
+      { q: "Radical du futur de 'tener' :", options: ["tener-", "tendr-", "ten-", "tendrá-"], answer: 1, explain: "tener → tendré, tendrás..." },
+      { q: "Radical du futur de 'hacer' :", options: ["hacer-", "hacé-", "har-", "hará-"], answer: 2, explain: "hacer → haré, harás..." },
+      { q: "Comment dit-on 'je pourrai' ?", options: ["puedaré", "poderé", "podré", "podría"], answer: 2, explain: "poder → podr- + é = podré." },
+      { q: "Le futur simple ajoute des terminaisons sur :", options: ["le radical", "l'infinitif complet", "la première personne", "le passé"], answer: 1, explain: "Sur l'infinitif entier (comer → comeré)." },
+      { q: "Quelles terminaisons pour tous les groupes ?", options: ["-o, -as, -a", "-é, -ás, -á", "-aba, -abas", "-e, -es"], answer: 1, explain: "-é, -ás, -á, -emos, -éis, -án — pareil pour -ar, -er, -ir." },
+      { q: "Comment dit-on 'demain nous irons' ?", options: ["Mañana vamos", "Mañana iremos", "Mañana iríamos", "Mañana ir"], answer: 1, explain: "Ir → iremos au futur simple." },
+    ]
+  },
+  'ser-estar': {
+    title: '⚖️ Quiz - Ser vs Estar',
+    questions: [
+      { q: "Yo ___ francés.", options: ["soy", "estoy", "es", "está"], answer: 0, explain: "Nationalité → SER." },
+      { q: "Ella ___ cansada.", options: ["es", "está", "eres", "estás"], answer: 1, explain: "État temporaire → ESTAR." },
+      { q: "Madrid ___ en España.", options: ["es", "está", "son", "están"], answer: 1, explain: "Localisation (même permanente) → ESTAR." },
+      { q: "Mi hermano ___ médico.", options: ["es", "está", "somos", "estamos"], answer: 0, explain: "Profession → SER." },
+      { q: "La casa ___ grande.", options: ["es", "está", "son", "están"], answer: 0, explain: "Caractéristique permanente → SER." },
+      { q: "Los niños ___ contentos.", options: ["son", "están", "es", "está"], answer: 1, explain: "Émotion → ESTAR." },
+      { q: "'Es aburrido' signifie :", options: ["il s'ennuie", "il est ennuyeux", "il est fatigué", "il est prêt"], answer: 1, explain: "SER + aburrido = ennuyeux (caractère). ESTAR + aburrido = s'ennuyer." },
+      { q: "'Está listo' signifie :", options: ["il est intelligent", "il est prêt", "il est grand", "il est riche"], answer: 1, explain: "ESTAR + listo = prêt. SER + listo = intelligent." },
+      { q: "¿De dónde ___ tú ?", options: ["eres", "estás", "es", "está"], answer: 0, explain: "Origine → SER." },
+      { q: "El café ___ caliente.", options: ["es", "está", "son", "están"], answer: 1, explain: "État (température) → ESTAR." },
+    ]
+  },
+  'articles': {
+    title: '🏷️ Quiz - Articles',
+    questions: [
+      { q: "___ casa es grande. (article défini)", options: ["el", "la", "los", "las"], answer: 1, explain: "Casa est féminin → la." },
+      { q: "___ libro es interesante.", options: ["el", "la", "los", "las"], answer: 0, explain: "Libro est masculin → el." },
+      { q: "Quel article pour 'niños' ?", options: ["el", "la", "los", "las"], answer: 2, explain: "Masculin pluriel → los." },
+      { q: "Contraction de a + el =", options: ["ael", "al", "el", "a le"], answer: 1, explain: "a + el = al (obligatoire)." },
+      { q: "Contraction de de + el =", options: ["deel", "de", "del", "de le"], answer: 2, explain: "de + el = del (obligatoire)." },
+      { q: "Une voiture (indéfini) :", options: ["el coche", "un coche", "una coche", "unos coche"], answer: 1, explain: "Coche masculin sing. → un coche." },
+      { q: "Comment dit-on 'la ville' ?", options: ["el ciudad", "la ciudad", "las ciudad", "una ciudad"], answer: 1, explain: "Ciudad féminin → la ciudad." },
+      { q: "'La mano' est :", options: ["masculin", "féminin", "les deux", "invariable"], answer: 1, explain: "Mano finit par -o mais est féminin (exception)." },
+      { q: "'El problema' est :", options: ["masculin", "féminin", "neutre", "les deux"], answer: 0, explain: "Malgré le -a, problema est masculin (mots grecs)." },
+      { q: "Mots en -ción sont :", options: ["masculins", "féminins", "invariables", "pluriels"], answer: 1, explain: "-ción, -sión, -dad, -tad → féminins." },
+    ]
+  },
+  'gustar': {
+    title: '❤️ Quiz - Le verbe Gustar',
+    questions: [
+      { q: "'J'aime le café' se dit :", options: ["Yo gusto el café", "Me gusta el café", "Me gustan el café", "Gusto el café"], answer: 1, explain: "Structure : pronom + gusta + chose. Me gusta el café." },
+      { q: "'J'aime les livres' se dit :", options: ["Me gusta los libros", "Me gustan los libros", "Me gusto los libros", "Gustan los libros"], answer: 1, explain: "Plusieurs choses → gustan (pluriel)." },
+      { q: "'Tu aimes danser' se dit :", options: ["Tú gustas bailar", "Te gusta bailar", "Te gustan bailar", "Gustas bailar"], answer: 1, explain: "Bailar est un verbe → gusta (singulier)." },
+      { q: "'Ils aiment cette ville' :", options: ["Ellos gustan esta ciudad", "Les gustan esta ciudad", "Les gusta esta ciudad", "Le gusta esta ciudad"], answer: 2, explain: "Les (à eux) + gusta (chose sing.) + esta ciudad." },
+      { q: "Quand utilise-t-on 'gustan' ?", options: ["Avec je", "Avec plusieurs choses aimées", "Avec un verbe", "Toujours"], answer: 1, explain: "gustan = sujet pluriel (les choses aimées)." },
+      { q: "'Nous aimons voyager' :", options: ["Nos gusta viajar", "Nos gustan viajar", "Nosotros gustamos viajar", "Gustar viajar"], answer: 0, explain: "Nos + gusta + viajar (verbe = singulier)." },
+      { q: "Quel verbe fonctionne comme gustar ?", options: ["hablar", "comer", "encantar", "trabajar"], answer: 2, explain: "encantar (adorer), doler, molestar suivent la même structure." },
+      { q: "'Elle aime la musique' :", options: ["Ella gusta la música", "Le gusta la música", "Se gusta la música", "Les gusta la música"], answer: 1, explain: "Le (à elle) + gusta + la música." },
+      { q: "'Me duele la cabeza' signifie :", options: ["J'ai mal à la tête", "J'aime la tête", "Je pense à la tête", "Je vois la tête"], answer: 0, explain: "doler = faire mal (comme gustar). Ma tête me fait mal." },
+      { q: "Le sujet grammatical de 'Me gusta el café' est :", options: ["Me", "el café", "gusta", "yo"], answer: 1, explain: "'el café' est le sujet (littéralement : le café me plaît)." },
+    ]
+  },
+  'adjectifs': {
+    title: '🎨 Quiz - Adjectifs',
+    questions: [
+      { q: "Féminin de 'alto' :", options: ["alto", "alta", "altos", "altas"], answer: 1, explain: "-o → -a au féminin." },
+      { q: "Pluriel de 'grande' :", options: ["grande", "grandas", "grandes", "grandos"], answer: 2, explain: "Termine par -e → +s au pluriel." },
+      { q: "Féminin pluriel de 'francés' :", options: ["franceses", "francesas", "francesos", "franceses"], answer: 1, explain: "français → francés/francesa, pluriel : franceses/francesas." },
+      { q: "Position typique de l'adjectif :", options: ["avant le nom", "après le nom", "au milieu", "ça dépend"], answer: 1, explain: "En espagnol, l'adjectif se place généralement après le nom." },
+      { q: "'Une maison bleue' :", options: ["azul casa", "una casa azul", "una azul casa", "casas azules"], answer: 1, explain: "una casa azul (adjectif après le nom)." },
+      { q: "'Plus grand que' :", options: ["más grande como", "más grande que", "menos grande que", "tan grande como"], answer: 1, explain: "más ... que = comparatif de supériorité." },
+      { q: "'Meilleur' se dit :", options: ["más bueno", "mejor", "muy bueno", "el bueno"], answer: 1, explain: "'mejor' (irrégulier, ne dit pas más bueno)." },
+      { q: "'Aussi rapide que' :", options: ["más rápido que", "tan rápido como", "menos rápido que", "muy rápido que"], answer: 1, explain: "tan ... como = aussi ... que." },
+      { q: "Pluriel de 'fácil' :", options: ["fácils", "fáciles", "fáciles", "faciles"], answer: 1, explain: "Termine par consonne → +es : fáciles." },
+      { q: "'Voitures rouges' :", options: ["coches rojas", "coches rojos", "coche rojos", "rojas coches"], answer: 1, explain: "Accord masculin pluriel : coches rojos." },
+    ]
+  },
+  'demonstratifs': {
+    title: '👉 Quiz - Démonstratifs & possessifs',
+    questions: [
+      { q: "'Cette maison (près de moi)' :", options: ["ese casa", "esta casa", "aquella casa", "este casa"], answer: 1, explain: "Proche + féminin = esta." },
+      { q: "'Ce livre (près de toi)' :", options: ["este libro", "ese libro", "aquel libro", "esa libro"], answer: 1, explain: "Distance moyenne + masculin = ese." },
+      { q: "'Ces montagnes (là-bas)' :", options: ["estas montagnes", "esas montañas", "aquellas montañas", "aquellos montañas"], answer: 2, explain: "Loin + féminin pluriel = aquellas." },
+      { q: "'Mon frère' :", options: ["mi hermano", "mis hermanos", "mío hermano", "mi hermana"], answer: 0, explain: "mi = mon/ma singulier." },
+      { q: "'Mes amis' :", options: ["mi amigos", "mis amigos", "míos amigos", "mia amigos"], answer: 1, explain: "mis = pluriel (mes)." },
+      { q: "'Notre maison' :", options: ["nuestro casa", "nuestra casa", "nosotros casa", "nuestras casa"], answer: 1, explain: "nuestra (accord féminin) + casa." },
+      { q: "'Leur voiture' :", options: ["su coche", "sus coche", "ellos coche", "sus coches"], answer: 0, explain: "su coche (leur/son voiture singulier)." },
+      { q: "'Ta mère' :", options: ["tú madre", "tu madre", "tus madre", "tuya madre"], answer: 1, explain: "tu (sans accent) = ton/ta." },
+      { q: "L'espagnol distingue combien de distances ?", options: ["1", "2", "3", "4"], answer: 2, explain: "Este (proche), ese (moyen), aquel (loin)." },
+      { q: "'Mi' varie selon le genre ?", options: ["Oui", "Non", "Parfois", "Seulement au pluriel"], answer: 1, explain: "mi / mis ne varient pas selon le genre." },
+    ]
+  },
+  'interro-nego': {
+    title: '❓ Quiz - Interrogation & négation',
+    questions: [
+      { q: "'Je ne travaille pas' :", options: ["Yo no trabajo", "No yo trabajo", "Yo trabajo no", "No trabaja"], answer: 0, explain: "no + verbe : yo no trabajo." },
+      { q: "'Je n'ai rien' :", options: ["Tengo nada", "No tengo nada", "No tengo no nada", "Nada tengo no"], answer: 1, explain: "Double négation classique et OBLIGATOIRE en espagnol." },
+      { q: "En espagnol, la double négation :", options: ["s'annule (comme en maths)", "renforce la négation", "est interdite", "n'existe pas"], answer: 1, explain: "Contrairement au français, elle renforce (ne s'annule pas)." },
+      { q: "'Personne ne vient' :", options: ["Nadie viene", "No nadie viene", "Alguien viene", "Nadie no viene"], answer: 0, explain: "Si 'nadie' est avant le verbe, pas besoin de 'no'." },
+      { q: "'Quel est ton nom ?' :", options: ["¿Que es tu nombre?", "¿Cuál es tu nombre?", "¿Qué tu nombre?", "¿Cómo es tu nombre?"], answer: 1, explain: "Cuál pour un choix entre plusieurs (contexte)." },
+      { q: "'Où habites-tu ?' :", options: ["¿Dónde vives?", "¿Dónde vive?", "¿Adónde vives?", "¿Cómo vives?"], answer: 0, explain: "dónde + vives (tú)." },
+      { q: "Le point d'interrogation espagnol :", options: ["seulement à la fin", "au début (¿) et à la fin (?)", "aucun", "au milieu"], answer: 1, explain: "¿...? entoure la question à l'écrit." },
+      { q: "'Combien coûte ?' :", options: ["¿Qué cuesta?", "¿Cuánto cuesta?", "¿Cómo cuesta?", "¿Dónde cuesta?"], answer: 1, explain: "Cuánto = combien." },
+      { q: "'Il ne pleut jamais' :", options: ["No llueve nunca", "Nunca llueve no", "Sí llueve nunca", "No no llueve nunca"], answer: 0, explain: "No + verbe + nunca (double négation)." },
+      { q: "Différence entre 'que' et 'qué' :", options: ["Aucune", "qué = accent en question, que = connecteur", "qué = masculin", "que = pluriel"], answer: 1, explain: "¿Qué haces? (question) vs Pienso que... (connecteur)." },
+    ]
+  },
+  'nombres': {
+    title: '🔢 Quiz - Nombres',
+    questions: [
+      { q: "Comment dit-on 15 ?", options: ["diez y cinco", "quince", "quinientos", "cinco"], answer: 1, explain: "15 = quince (mot unique)." },
+      { q: "Comment dit-on 100 ?", options: ["cien", "ciento", "cinquenta", "un cien"], answer: 0, explain: "100 pile = cien / 101+ = ciento uno..." },
+      { q: "Comment dit-on 500 ?", options: ["cincocientos", "quinientos", "cincocien", "quinencientos"], answer: 1, explain: "500 = quinientos (irrégulier, piège classique)." },
+      { q: "Comment dit-on 700 ?", options: ["sietecientos", "setecientos", "sietencientos", "setecien"], answer: 1, explain: "700 = setecientos (pas sietecientos)." },
+      { q: "Comment dit-on 900 ?", options: ["nuevecientos", "novecientos", "nueve cientos", "novecien"], answer: 1, explain: "900 = novecientos (pas nuevecientos)." },
+      { q: "Comment dit-on 31 ?", options: ["treintauno", "treinta y uno", "treintiuno", "treinta uno"], answer: 1, explain: "À partir de 31, on ajoute 'y' : treinta y uno." },
+      { q: "Comment dit-on 22 ?", options: ["veinte y dos", "veintidós", "veintiduo", "vinti dos"], answer: 1, explain: "21-29 sont contractés : veintidós." },
+      { q: "Comment dit-on 1 000 000 ?", options: ["mil", "un millón", "mil mil", "millón"], answer: 1, explain: "1 million = un millón." },
+      { q: "Comment dit-on 12 ?", options: ["doce", "docee", "dos", "diez y dos"], answer: 0, explain: "12 = doce." },
+      { q: "Comment dit-on 80 ?", options: ["ochenta", "ochocientos", "ocho", "octenta"], answer: 0, explain: "80 = ochenta." },
+    ]
+  },
+  'couleurs': {
+    title: '🎨 Quiz - Couleurs',
+    questions: [
+      { q: "Rouge se dit :", options: ["azul", "rojo", "verde", "rosa"], answer: 1, explain: "rojo = rouge." },
+      { q: "Bleu se dit :", options: ["azul", "verde", "morado", "amarillo"], answer: 0, explain: "azul = bleu." },
+      { q: "Vert se dit :", options: ["morado", "amarillo", "verde", "blanco"], answer: 2, explain: "verde = vert." },
+      { q: "Jaune se dit :", options: ["amarillo", "azul", "gris", "naranja"], answer: 0, explain: "amarillo = jaune." },
+      { q: "Violet se dit :", options: ["rosa", "morado", "marrón", "gris"], answer: 1, explain: "morado (ou violeta) = violet." },
+      { q: "'Bleu foncé' se dit :", options: ["azul claro", "azul oscuro", "muy azul", "azul negro"], answer: 1, explain: "oscuro = foncé." },
+      { q: "'Vert clair' se dit :", options: ["verde oscuro", "verde claro", "verde muy", "clar verde"], answer: 1, explain: "claro = clair." },
+      { q: "Le féminin de 'rojo' est :", options: ["rojo", "roja", "rojas", "roje"], answer: 1, explain: "-o → -a : roja." },
+      { q: "'Rosa' au féminin s'accorde ?", options: ["oui", "non, invariable", "parfois", "seulement au pluriel"], answer: 1, explain: "rosa, naranja, violeta restent invariables." },
+      { q: "Marron se dit :", options: ["negro", "gris", "marrón", "morado"], answer: 2, explain: "marrón = marron." },
+    ]
+  },
+  'temps-jours': {
+    title: '📅 Quiz - Jours, mois, saisons',
+    questions: [
+      { q: "Comment dit-on 'lundi' ?", options: ["lunes", "martes", "miércoles", "domingo"], answer: 0, explain: "lunes = lundi." },
+      { q: "Comment dit-on 'mercredi' ?", options: ["martes", "jueves", "miércoles", "viernes"], answer: 2, explain: "miércoles = mercredi." },
+      { q: "Comment dit-on 'samedi' ?", options: ["domingo", "sábado", "viernes", "sabado"], answer: 1, explain: "sábado (avec accent) = samedi." },
+      { q: "Comment dit-on 'juillet' ?", options: ["junio", "julio", "juillet", "agosto"], answer: 1, explain: "julio = juillet." },
+      { q: "Comment dit-on 'août' ?", options: ["agosto", "octubre", "abril", "aoúto"], answer: 0, explain: "agosto = août." },
+      { q: "Comment dit-on 'décembre' ?", options: ["noviembre", "diciembre", "octubre", "diciembro"], answer: 1, explain: "diciembre = décembre." },
+      { q: "Comment dit-on 'l'été' ?", options: ["la primavera", "el otoño", "el verano", "el invierno"], answer: 2, explain: "el verano = l'été." },
+      { q: "Comment dit-on 'le printemps' ?", options: ["la primavera", "el verano", "el otoño", "la estación"], answer: 0, explain: "la primavera = le printemps." },
+      { q: "Les jours de la semaine s'écrivent :", options: ["avec majuscule", "en minuscule", "les deux", "en italique"], answer: 1, explain: "En espagnol, les jours et mois s'écrivent en minuscule." },
+      { q: "'Le lundi (habituellement)' se dit :", options: ["en lunes", "el lunes", "los lunes", "lunes"], answer: 2, explain: "'los lunes' = le lundi habituellement (los + jour au pluriel)." },
+    ]
+  },
+};
+
+/* ==========================================================
+   CLAVIER
+   ========================================================== */
+function insertChar(inputId, char) {
+  const el = document.getElementById(inputId);
+  el.focus();
+  const start = el.selectionStart;
+  const end = el.selectionEnd;
+  el.value = el.value.substring(0, start) + char + el.value.substring(end);
+  const pos = start + char.length;
+  el.setSelectionRange(pos, pos);
+}
+
+/* UTILS */
+function loadStats(key) { try { return JSON.parse(localStorage.getItem(key)) || {good:0, bad:0}; } catch(e) { return {good:0, bad:0}; } }
+function saveStats(key, s) { localStorage.setItem(key, JSON.stringify(s)); }
+function wordId(w) { return w.fr + '||' + w.es; }
+
+/* Gestion Mots Ratés */
+function loadFailedWords() { try { return new Set(JSON.parse(localStorage.getItem('failedWords')) || []); } catch(e) { return new Set(); } }
+let failedWords = loadFailedWords();
+function saveFailedWords() {
+  localStorage.setItem('failedWords', JSON.stringify([...failedWords]));
+  updateFailedBadges();
+  if (flashMode === 'failed') refreshCategoryCheckboxes('categoryFilter', flashMode);
+  if (chalMode === 'failed') refreshCategoryCheckboxes('challengeCategoryFilter', chalMode);
+  if (typeof qcmMode !== 'undefined' && qcmMode === 'failed') refreshCategoryCheckboxes('qcmCategoryFilter', qcmMode);
+}
+function addFailedWord(w) { failedWords.add(wordId(w)); saveFailedWords(); }
+function removeFailedWord(w) { failedWords.delete(wordId(w)); saveFailedWords(); }
+function resetFailedWords() {
+  if (!confirm('Effacer toute la liste des mots ratés ?')) return;
+  failedWords = new Set();
+  saveFailedWords();
+  resetFlashcards();
+  restartChallenge();
+}
+function updateFailedBadges() {
+  const n = failedWords.size;
+  document.getElementById('flashFailedBadge').textContent = n;
+  document.getElementById('chalFailedBadge').textContent = n;
+  const qb = document.getElementById('qcmFailedBadge');
+  if (qb) qb.textContent = n;
+}
+
+/* Gestion Favoris */
+function loadFavWords() { try { return new Set(JSON.parse(localStorage.getItem('favWords')) || []); } catch(e) { return new Set(); } }
+let favWords = loadFavWords();
+function saveFavWords() {
+  localStorage.setItem('favWords', JSON.stringify([...favWords]));
+  updateFavBadges();
+  if (flashMode === 'favorites') refreshCategoryCheckboxes('categoryFilter', flashMode);
+  if (chalMode === 'favorites') refreshCategoryCheckboxes('challengeCategoryFilter', chalMode);
+  if (typeof qcmMode !== 'undefined' && qcmMode === 'favorites') refreshCategoryCheckboxes('qcmCategoryFilter', qcmMode);
+}
+function toggleFav(w) {
+  const id = wordId(w);
+  if (favWords.has(id)) favWords.delete(id);
+  else favWords.add(id);
+  saveFavWords();
+}
+function updateFavBadges() {
+  const n = favWords.size;
+  document.getElementById('flashFavBadge').textContent = n;
+  document.getElementById('chalFavBadge').textContent = n;
+  const qb = document.getElementById('qcmFavBadge');
+  if (qb) qb.textContent = n;
+}
+
+/* Fonctions pour les boutons étoile */
+function toggleFlashStar(event) {
+  event.stopPropagation();
+  if (flashOrder.length === 0) return;
+  const w = flashOrder[flashIndex];
+  toggleFav(w);
+  document.getElementById('flashStar').classList.toggle('active', favWords.has(wordId(w)));
+}
+function toggleChalStar() {
+  if (!chalCurrent) return;
+  toggleFav(chalCurrent);
+  document.getElementById('chalStar').classList.toggle('active', favWords.has(wordId(chalCurrent)));
+}
+function toggleQcmStar() {
+  if (!qcmCurrent) return;
+  toggleFav(qcmCurrent);
+  document.getElementById('qcmStar').classList.toggle('active', favWords.has(wordId(qcmCurrent)));
+}
+
+/* Niveaux */
+function loadLevels() { try { return JSON.parse(localStorage.getItem('wordLevels')) || {}; } catch(e) { return {}; } }
+let wordLevels = loadLevels();
+function saveLevels() { localStorage.setItem('wordLevels', JSON.stringify(wordLevels)); updateMasteredCount(); }
+function getLevel(w) { return wordLevels[wordId(w)] || 0; }
+function upLevel(w) { const id = wordId(w); wordLevels[id] = Math.min(5, (wordLevels[id] || 0) + 1); saveLevels(); }
+function downLevel(w) { wordLevels[wordId(w)] = 0; saveLevels(); }
+function resetAllLevels() {
+  if (!confirm('Réinitialiser tous les niveaux ?')) return;
+  wordLevels = {};
+  saveLevels();
+  showFlashcard();
+}
+function updateMasteredCount() {
+  const n = Object.values(wordLevels).filter(v => v >= 5).length;
+  const el = document.getElementById('flashMastered');
+  if (el) el.textContent = n;
+}
+function weightedPick(list) {
+  if (list.length === 0) return null;
+  const weights = list.map(w => 6 - getLevel(w));
+  const total = weights.reduce((a,b) => a+b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < list.length; i++) { r -= weights[i]; if (r <= 0) return list[i]; }
+  return list[list.length - 1];
+}
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'es-ES'; u.rate = 0.9;
+  window.speechSynthesis.speak(u);
+}
+function normalize(s) {
+  return s.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¿¡?!.,]/g, '').replace(/\s+/g, ' ');
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+/* NAV */
+function showTab(id, btn) {
+  ['flashcards', 'challenge', 'sentences', 'theory', 'qcm', 'ai'].forEach(t => {
+    document.getElementById(t).classList.toggle('hidden', t !== id);
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function showTheory(id) {
+  document.getElementById('theory-menu').style.display = 'none';
+  document.getElementById('quiz-container').classList.remove('active');
+  document.querySelectorAll('.theory-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('theory-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function backTheory() {
+  document.getElementById('theory-menu').style.display = 'block';
+  document.getElementById('quiz-container').classList.remove('active');
+  document.querySelectorAll('.theory-content').forEach(c => c.classList.remove('active'));
+  window.scrollTo(0, 0);
+}
+
+/* ==========================================================
+   QUIZ
+   ========================================================== */
+let quizCurrent = null;      // objet quizBank[id]
+let quizQueue = [];          // questions restantes shuffled
+let quizIdx = 0;             // index dans la queue
+let quizTotal = 0;
+let quizGoodCount = 0;
+let quizBadCount = 0;
+let quizAnswered = false;    // question courante déjà répondue
+
+function startQuiz(id) {
+  const q = quizBank[id];
+  if (!q) { alert('Quiz non disponible.'); return; }
+  document.getElementById('theory-menu').style.display = 'none';
+  document.querySelectorAll('.theory-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('quiz-container').classList.add('active');
+  quizCurrent = q;
+  quizQueue = shuffle(q.questions.slice());
+  quizIdx = 0;
+  quizTotal = quizQueue.length;
+  quizGoodCount = 0;
+  quizBadCount = 0;
+  document.getElementById('quiz-title').textContent = q.title;
+  document.getElementById('quiz-completion').innerHTML = '';
+  showQuizQuestion();
+  window.scrollTo(0, 0);
+}
+
+function closeQuiz() {
+  document.getElementById('quiz-container').classList.remove('active');
+  document.getElementById('theory-menu').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function showQuizQuestion() {
+  quizAnswered = false;
+  document.getElementById('quiz-explanation').innerHTML = '';
+  document.getElementById('quiz-next-btn').disabled = true;
+
+  if (quizIdx >= quizTotal) {
+    // Fin
+    document.getElementById('quiz-question').innerHTML = '🏁';
+    document.getElementById('quiz-options').innerHTML = '';
+    document.getElementById('quiz-progress').textContent = '';
+    const pct = Math.round(quizGoodCount / quizTotal * 100);
+    document.getElementById('quiz-completion').innerHTML = `
+      <div class="completion-screen">
+        <h3>🎉 Quiz terminé !</h3>
+        <p>${quizTotal} questions</p>
+        <div class="score-big">${pct}%</div>
+        <p>✅ ${quizGoodCount} bons &nbsp;•&nbsp; ❌ ${quizBadCount} faux</p>
+        <button class="btn btn-primary" style="margin-top:15px;" onclick="restartCurrentQuiz()">🔄 Recommencer</button>
+      </div>`;
+    document.getElementById('quiz-next-btn').disabled = true;
+    updateQuizStats();
+    return;
+  }
+
+  const q = quizQueue[quizIdx];
+  document.getElementById('quiz-question').textContent = q.q;
+  document.getElementById('quiz-progress').textContent = `Question ${quizIdx + 1} / ${quizTotal}`;
+
+  const optsHtml = q.options.map((opt, i) =>
+    `<button class="quiz-option" onclick="answerQuiz(${i})">${opt}</button>`
+  ).join('');
+  document.getElementById('quiz-options').innerHTML = optsHtml;
+  updateQuizStats();
+}
+
+function answerQuiz(idx) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIdx];
+  const buttons = document.querySelectorAll('#quiz-options .quiz-option');
+  buttons.forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === q.answer) btn.classList.add('correct');
+    if (i === idx && i !== q.answer) btn.classList.add('wrong');
+  });
+  if (idx === q.answer) {
+    quizGoodCount++;
+    document.getElementById('quiz-explanation').innerHTML =
+      `<div class="quiz-explanation">✅ Correct ! ${q.explain || ''}</div>`;
+  } else {
+    quizBadCount++;
+    document.getElementById('quiz-explanation').innerHTML =
+      `<div class="quiz-explanation">❌ Faux. Bonne réponse : <strong>${q.options[q.answer]}</strong>.<br>${q.explain || ''}</div>`;
+  }
+  document.getElementById('quiz-next-btn').disabled = false;
+  updateQuizStats();
+}
+
+function nextQuizQuestion() {
+  quizIdx++;
+  showQuizQuestion();
+}
+
+function restartCurrentQuiz() {
+  if (!quizCurrent) return;
+  quizQueue = shuffle(quizCurrent.questions.slice());
+  quizIdx = 0;
+  quizGoodCount = 0;
+  quizBadCount = 0;
+  document.getElementById('quiz-completion').innerHTML = '';
+  showQuizQuestion();
+}
+
+function updateQuizStats() {
+  document.getElementById('quizGood').textContent = quizGoodCount;
+  document.getElementById('quizBad').textContent = quizBadCount;
+}
+
+/* ==========================================================
+   LOGIQUE DE FILTRAGE PAR CATEGORIE ET MODE
+   ========================================================== */
+function populateCategories() {
+  refreshCategoryCheckboxes('categoryFilter', flashMode);
+  refreshCategoryCheckboxes('challengeCategoryFilter', chalMode);
+  if (typeof qcmMode !== 'undefined') refreshCategoryCheckboxes('qcmCategoryFilter', qcmMode);
+}
+
+function refreshCategoryCheckboxes(containerId, mode) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  // Sauvegarder ce qui était coché avant le rafraîchissement
+  const currentChecked = Array.from(container.querySelectorAll('input:checked')).map(cb => cb.value);
+  const cats = [...new Set(wordBank.map(w => w.cat))];
+  let html = `<div class="hint-text">Sélectionne un ou plusieurs thèmes (si rien n'est coché, tout est sélectionné) :</div>`;
+  
+  cats.forEach(c => {
+    let list = wordBank.filter(w => w.cat === c);
+    if (mode === 'failed') list = list.filter(w => failedWords.has(wordId(w)));
+    if (mode === 'favorites') list = list.filter(w => favWords.has(wordId(w)));
+    const n = list.length;
+    
+    // N'afficher la catégorie que s'il y a des mots dedans pour ce mode
+    if (n > 0 || (mode !== 'failed' && mode !== 'favorites')) {
+      const checked = currentChecked.includes(c) ? 'checked' : '';
+      html += `
+        <label class="cat-cb-label">
+          <input type="checkbox" value="${c}" ${checked}>
+          ${c} (${n})
+        </label>
+      `;
+    }
+  });
+  container.innerHTML = html;
+}
+
+function getFilteredWords_raw(selectedCats, mode) {
+  let list = selectedCats.length === 0 
+    ? wordBank 
+    : wordBank.filter(w => selectedCats.includes(w.cat));
+    
+  if (mode === 'failed') list = list.filter(w => failedWords.has(wordId(w)));
+  if (mode === 'favorites') list = list.filter(w => favWords.has(wordId(w)));
+  return list;
+}
+
+function getFilteredWords(containerId, mode) {
+  const container = document.getElementById(containerId);
+  const checkedBoxes = Array.from(container.querySelectorAll('input[type="checkbox"]:checked'));
+  const selectedCats = checkedBoxes.map(cb => cb.value);
+  return getFilteredWords_raw(selectedCats, mode);
+}
+
+/* FLASHCARDS */
+let flashLang = 'fr';
+let flashMode = 'all';
+let flashOrder = [];
+let flashIndex = 0;
+let flashRevealed = false;
+let flashStats = loadStats('flashStats');
+
+function setFlashLang(l) {
+  flashLang = l;
+  document.getElementById('lang-fr-flash').classList.toggle('active', l === 'fr');
+  document.getElementById('lang-es-flash').classList.toggle('active', l === 'es');
+  showFlashcard();
+}
+function setFlashMode(mode) {
+  flashMode = mode;
+  document.getElementById('flashMode-all').classList.toggle('active', mode === 'all');
+  document.getElementById('flashMode-failed').classList.toggle('active', mode === 'failed');
+  document.getElementById('flashMode-fav').classList.toggle('active', mode === 'favorites');
+  refreshCategoryCheckboxes('categoryFilter', flashMode);
+  resetFlashcards();
+}
+function resetFlashcards() {
+  flashOrder = shuffle(getFilteredWords('categoryFilter', flashMode));
+  flashIndex = 0;
+  showFlashcard();
+}
+function showFlashcard() {
+  updateMasteredCount();
+  if (flashOrder.length === 0) {
+    document.getElementById('flashCat').textContent = '';
+    document.getElementById('flashLevel').textContent = '';
+    document.getElementById('flashFront').textContent = (flashMode === 'failed' || flashMode === 'favorites') ? '🎉 Aucun mot dans cette liste !' : 'Aucun mot dans cette catégorie';
+    document.getElementById('flashHint').textContent = '';
+    document.getElementById('flashCounter').textContent = '';
+    document.getElementById('flashStar').classList.remove('active');
+    updateFlashStats();
+    return;
+  }
+  const w = flashOrder[flashIndex];
+  flashRevealed = false;
+  document.getElementById('flashStar').classList.toggle('active', favWords.has(wordId(w)));
+  document.getElementById('flashCat').textContent = w.cat;
+  const lvl = getLevel(w);
+  document.getElementById('flashLevel').innerHTML = `Niveau ${lvl}/5 ${'●'.repeat(lvl)}${'○'.repeat(5-lvl)}`;
+  document.getElementById('flashFront').textContent = flashLang === 'fr' ? w.fr : w.es;
+  document.getElementById('flashHint').textContent = '👆 Clique pour voir';
+  document.getElementById('flashCounter').textContent = `Carte ${flashIndex + 1} / ${flashOrder.length}`;
+  updateFlashStats();
+}
+function flipFlashcard(event) {
+  if (event && (event.target.classList.contains('speak-btn') || event.target.classList.contains('star-btn'))) return;
+  if (flashOrder.length === 0) return;
+  const w = flashOrder[flashIndex];
+  if (!flashRevealed) {
+    document.getElementById('flashFront').textContent = flashLang === 'fr' ? w.es : w.fr;
+    document.getElementById('flashHint').textContent = '(retour)';
+    flashRevealed = true;
+  } else {
+    document.getElementById('flashFront').textContent = flashLang === 'fr' ? w.fr : w.es;
+    document.getElementById('flashHint').textContent = '👆 Clique pour voir';
+    flashRevealed = false;
+  }
+}
+function speakFlashcard(event) {
+  event.stopPropagation();
+  const w = flashOrder[flashIndex];
+  if (w) speak(w.es);
+}
+function markFlashcard(good) {
+  if (flashOrder.length === 0) return;
+  const w = flashOrder[flashIndex];
+  if (good) { flashStats.good++; upLevel(w); removeFailedWord(w); }
+  else { flashStats.bad++; downLevel(w); addFailedWord(w); }
+  saveStats('flashStats', flashStats);
+  updateFlashStats();
+  if (flashMode === 'failed' && good) {
+    flashOrder = flashOrder.filter(x => wordId(x) !== wordId(w));
+    if (flashIndex >= flashOrder.length) flashIndex = 0;
+    showFlashcard();
+  } else { nextFlashcard(); }
+}
+function nextFlashcard() {
+  if (flashOrder.length === 0) { showFlashcard(); return; }
+  if (Math.random() < 0.7) {
+    const picked = weightedPick(flashOrder);
+    flashIndex = flashOrder.indexOf(picked);
+  } else {
+    flashIndex = (flashIndex + 1) % flashOrder.length;
+  }
+  showFlashcard();
+}
+function updateFlashStats() {
+  document.getElementById('flashGood').textContent = flashStats.good;
+  document.getElementById('flashBad').textContent = flashStats.bad;
+}
+
+/* CHALLENGE */
+let chalLang = 'fr';
+let chalMode = 'all';
+let chalCurrent = null;
+let chalStats = loadStats('chalStats');
+let chalQueue = [];
+let chalTotal = 0;
+let chalSessionGood = 0;
+let chalSessionBad = 0;
+
+function setChalLang(l) {
+  chalLang = l;
+  document.getElementById('lang-fr-chal').classList.toggle('active', l === 'fr');
+  document.getElementById('lang-es-chal').classList.toggle('active', l === 'es');
+  restartChallenge();
+}
+function setChalMode(mode) {
+  chalMode = mode;
+  document.getElementById('chalMode-all').classList.toggle('active', mode === 'all');
+  document.getElementById('chalMode-failed').classList.toggle('active', mode === 'failed');
+  document.getElementById('chalMode-fav').classList.toggle('active', mode === 'favorites');
+  refreshCategoryCheckboxes('challengeCategoryFilter', chalMode);
+  restartChallenge();
+}
+function restartChallenge() {
+  chalQueue = shuffle(getFilteredWords('challengeCategoryFilter', chalMode));
+  chalTotal = chalQueue.length;
+  chalSessionGood = 0; chalSessionBad = 0;
+  document.getElementById('chalCompletion').innerHTML = '';
+  document.getElementById('chalResult').innerHTML = '';
+  nextChallenge();
+}
+function nextChallenge() {
+  document.getElementById('chalResult').innerHTML = '';
+  document.getElementById('chalCompletion').innerHTML = '';
+  if (chalTotal === 0) {
+    chalCurrent = null;
+    document.getElementById('chalPrompt').textContent = (chalMode === 'failed' || chalMode === 'favorites') ? '🎉 Aucun mot dans cette liste !' : 'Aucun mot disponible.';
+    document.getElementById('chalInput').value = '';
+    document.getElementById('chalCounter').textContent = '';
+    document.getElementById('chalStar').classList.remove('active');
+    updateChalStats(); return;
+  }
+  if (chalQueue.length === 0) {
+    chalCurrent = null;
+    document.getElementById('chalPrompt').textContent = '🎉 Session terminée !';
+    document.getElementById('chalInput').value = '';
+    document.getElementById('chalCounter').textContent = '';
+    const pct = Math.round(chalSessionGood / chalTotal * 100);
+    document.getElementById('chalCompletion').innerHTML = `<div class="completion-screen"><h3>🏁 Session terminée</h3><p>Tu as parcouru <strong>${chalTotal}</strong> mots</p><div class="score-big">${pct}%</div><p>✅ ${chalSessionGood} bons &nbsp;•&nbsp; ❌ ${chalSessionBad} faux</p><button class="btn btn-primary" style="margin-top:15px;" onclick="restartChallenge()">🔄 Recommencer</button></div>`;
+    updateChalStats(); return;
+  }
+  chalCurrent = chalQueue.shift();
+  document.getElementById('chalStar').classList.toggle('active', favWords.has(wordId(chalCurrent)));
+  document.getElementById('chalPrompt').textContent = chalLang === 'fr' ? chalCurrent.fr : chalCurrent.es;
+  document.getElementById('chalInput').value = '';
+  document.getElementById('chalInput').focus();
+  const seen = chalTotal - chalQueue.length;
+  document.getElementById('chalCounter').textContent = `Mot ${seen} / ${chalTotal} • ${chalQueue.length} restant(s)`;
+  updateChalStats();
+}
+function speakChal() { if (chalCurrent) speak(chalCurrent.es); }
+function checkChallenge() {
+  if (!chalCurrent) return;
+  const input = document.getElementById('chalInput').value;
+  if (!input.trim()) return;
+  const expected = chalLang === 'fr' ? chalCurrent.es : chalCurrent.fr;
+  const ok = normalize(input) === normalize(expected);
+  const box = document.getElementById('chalResult');
+  if (ok) {
+    chalStats.good++; chalSessionGood++; upLevel(chalCurrent); removeFailedWord(chalCurrent);
+    box.className = 'result correct';
+    box.innerHTML = `✅ Correct !<br><div class="answer">${expected}</div>`;
+  } else {
+    chalStats.bad++; chalSessionBad++; downLevel(chalCurrent); addFailedWord(chalCurrent);
+    box.className = 'result wrong';
+    box.innerHTML = `❌ Faux.<br>Ta réponse : <em>${input}</em><br><div class="answer">Correction : ${expected}</div><br><small style="opacity:0.7;">🔴 Ajouté aux mots à réviser</small>`;
+  }
+  saveStats('chalStats', chalStats);
+  updateChalStats();
+}
+function updateChalStats() {
+  document.getElementById('chalGood').textContent = chalStats.good;
+  document.getElementById('chalBad').textContent = chalStats.bad;
+  const total = chalStats.good + chalStats.bad;
+  const pct = total === 0 ? 0 : Math.round(chalStats.good / total * 100);
+  document.getElementById('chalScore').textContent = pct + '%';
+}
+
+/* SENTENCES */
+let sentLang = 'fr';
+let sentCurrent = null;
+let sentCount = 0;
+function setSentLang(l) {
+  sentLang = l;
+  document.getElementById('lang-fr-sent').classList.toggle('active', l === 'fr');
+  document.getElementById('lang-es-sent').classList.toggle('active', l === 'es');
+  nextSentence();
+}
+function generateSentence() {
+  const tpl = sentenceTemplates[Math.floor(Math.random() * sentenceTemplates.length)];
+  let fr = tpl.fr; let es = tpl.es;
+  if (tpl.slots) {
+    for (const key in tpl.slots) {
+      const opts = tpl.slots[key];
+      const val = opts[Math.floor(Math.random() * opts.length)];
+      const valFr = tpl.dict ? (tpl.dict[val] || val) : val;
+      const regex = new RegExp('\\{' + key + '\\}', 'g');
+      es = es.replace(regex, val); fr = fr.replace(regex, valFr);
+    }
+  }
+  return { fr, es };
+}
+function nextSentence() {
+  sentCurrent = generateSentence();
+  document.getElementById('sentText').textContent = sentLang === 'fr' ? sentCurrent.fr : sentCurrent.es;
+  document.getElementById('sentSub').textContent = sentLang === 'fr' ? '→ Traduis en espagnol' : '→ Traduis en français';
+  document.getElementById('sentInput').value = '';
+  document.getElementById('sentResult').innerHTML = '';
+  sentCount++;
+  document.getElementById('sentCount').textContent = sentCount;
+}
+function speakSent() { if (sentCurrent) speak(sentCurrent.es); }
+function showSentAnswer() {
+  const expected = sentLang === 'fr' ? sentCurrent.es : sentCurrent.fr;
+  const input = document.getElementById('sentInput').value;
+  const box = document.getElementById('sentResult');
+  const ok = normalize(input) === normalize(expected);
+  if (ok) {
+    box.className = 'result correct';
+    box.innerHTML = `✅ Parfait !<br><div class="answer">${expected}</div>`;
+  } else {
+    box.className = 'result wrong';
+    box.innerHTML = `📖 Correction :<br><div class="answer">${expected}</div>${input.trim() ? `<br><small>Ta réponse : <em>${input}</em></small>` : ''}<br><small style="opacity:0.7;">(l'espagnol accepte plusieurs formulations)</small>`;
+  }
+}
+
+/* ==========================================================
+   QCM - Choix multiples par catégorie (3 niveaux)
+   ========================================================== */
+let qcmLang = 'fr';
+let qcmMode = 'all';
+let qcmLevel = 1;
+let qcmCurrent = null;
+let qcmQueue = [];
+let qcmTotal = 0;
+let qcmSessionGood = 0;
+let qcmSessionBad = 0;
+let qcmAnswered = false;
+let qcmStats = loadStats('qcmStats');
+
+function setQcmLang(l) {
+  qcmLang = l;
+  document.getElementById('lang-fr-qcm').classList.toggle('active', l === 'fr');
+  document.getElementById('lang-es-qcm').classList.toggle('active', l === 'es');
+  restartQcm();
+}
+function setQcmMode(mode) {
+  qcmMode = mode;
+  document.getElementById('qcmMode-all').classList.toggle('active', mode === 'all');
+  document.getElementById('qcmMode-failed').classList.toggle('active', mode === 'failed');
+  document.getElementById('qcmMode-fav').classList.toggle('active', mode === 'favorites');
+  refreshCategoryCheckboxes('qcmCategoryFilter', qcmMode);
+  restartQcm();
+}
+function setQcmLevel(lvl) {
+  qcmLevel = lvl;
+  [1, 2, 3].forEach(n => document.getElementById('qcmLvl-' + n).classList.toggle('active', n === lvl));
+  restartQcm();
+}
+function qcmEscape(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function qcmField(w, isAnswer) {
+  const answerLang = qcmLang === 'fr' ? 'es' : 'fr';
+  const promptLang = qcmLang === 'fr' ? 'fr' : 'es';
+  return isAnswer ? w[answerLang] : w[promptLang];
+}
+function nearVariants(word) {
+  const variants = new Set();
+  const vowelMap = { a: ['e', 'o'], e: ['i', 'a'], i: ['e', 'a'], o: ['u', 'a'], u: ['o', 'a'], 'á': ['a'], 'é': ['e'], 'í': ['i'], 'ó': ['o'], 'ú': ['u'] };
+  const w = word;
+  for (let i = 0; i < w.length; i++) {
+    const ch = w[i].toLowerCase();
+    if (vowelMap[ch]) vowelMap[ch].forEach(r => variants.add(w.slice(0, i) + r + w.slice(i + 1)));
+  }
+  const endSwaps = { ar: ['er', 'ir'], er: ['ir', 'ar'], ir: ['ar', 'er'] };
+  const last2 = w.slice(-2);
+  if (endSwaps[last2]) endSwaps[last2].forEach(e => variants.add(w.slice(0, -2) + e));
+  const eIdx = w.indexOf('e'); if (eIdx >= 0) variants.add(w.slice(0, eIdx) + 'ie' + w.slice(eIdx + 1));
+  const oIdx = w.indexOf('o'); if (oIdx >= 0) variants.add(w.slice(0, oIdx) + 'ue' + w.slice(oIdx + 1));
+  if (w.includes('ie')) variants.add(w.replace('ie', 'e'));
+  if (w.includes('ue')) variants.add(w.replace('ue', 'o'));
+  for (let i = 0; i < w.length; i++) { if ('lrsntcd'.includes(w[i].toLowerCase())) variants.add(w.slice(0, i + 1) + w[i] + w.slice(i + 1)); }
+  variants.add(w.normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+  const normOrig = normalize(word);
+  return [...variants].filter(v => v && v !== word && normalize(v) !== normOrig);
+}
+function buildQcmOptions(word) {
+  const correct = qcmField(word, true);
+  const answerLang = qcmLang === 'fr' ? 'es' : 'fr';
+  const normCorrect = normalize(correct);
+  let distractors = [];
+  const pushFrom = (list) => {
+    for (const w of list) {
+      if (distractors.length >= 3) break;
+      const val = w[answerLang];
+      if (!distractors.includes(val) && normalize(val) !== normCorrect) distractors.push(val);
+    }
+  };
+  if (qcmLevel === 3) {
+    if (!/[\s\/]/.test(correct)) distractors = shuffle(nearVariants(correct)).slice(0, 3);
+    if (distractors.length < 3) pushFrom(shuffle(wordBank.filter(w => w.cat === word.cat && wordId(w) !== wordId(word))));
+    if (distractors.length < 3) pushFrom(shuffle(wordBank.filter(w => wordId(w) !== wordId(word))));
+  } else if (qcmLevel === 2) {
+    pushFrom(shuffle(wordBank.filter(w => w.cat === word.cat && wordId(w) !== wordId(word))));
+    if (distractors.length < 3) pushFrom(shuffle(wordBank.filter(w => wordId(w) !== wordId(word))));
+  } else {
+    pushFrom(shuffle(wordBank.filter(w => w.cat !== word.cat)));
+    if (distractors.length < 3) pushFrom(shuffle(wordBank.filter(w => wordId(w) !== wordId(word))));
+  }
+  return { options: shuffle([correct, ...distractors.slice(0, 3)]), correct };
+}
+function restartQcm() {
+  qcmQueue = shuffle(getFilteredWords('qcmCategoryFilter', qcmMode));
+  qcmTotal = qcmQueue.length;
+  qcmSessionGood = 0; qcmSessionBad = 0;
+  document.getElementById('qcmCompletion').innerHTML = '';
+  document.getElementById('qcmExplanation').innerHTML = '';
+  nextQcm();
+}
+function nextQcm() {
+  qcmAnswered = false;
+  document.getElementById('qcmExplanation').innerHTML = '';
+  document.getElementById('qcmCompletion').innerHTML = '';
+  document.getElementById('qcmNextBtn').disabled = true;
+  if (qcmTotal === 0) {
+    qcmCurrent = null;
+    document.getElementById('qcmPrompt').textContent = (qcmMode === 'failed' || qcmMode === 'favorites') ? '🎉 Aucun mot dans cette liste !' : 'Aucun mot disponible.';
+    document.getElementById('qcmOptions').innerHTML = '';
+    document.getElementById('qcmProgress').textContent = '';
+    document.getElementById('qcmStar').classList.remove('active');
+    updateQcmStats();
+    return;
+  }
+  if (qcmQueue.length === 0) {
+    qcmCurrent = null;
+    document.getElementById('qcmPrompt').textContent = '🏁 Session terminée !';
+    document.getElementById('qcmOptions').innerHTML = '';
+    document.getElementById('qcmProgress').textContent = '';
+    const pct = Math.round(qcmSessionGood / qcmTotal * 100);
+    document.getElementById('qcmCompletion').innerHTML = `<div class="completion-screen"><h3>🏁 Session terminée</h3><p>Tu as parcouru <strong>${qcmTotal}</strong> mots (niveau ${qcmLevel})</p><div class="score-big">${pct}%</div><p>✅ ${qcmSessionGood} bons &nbsp;•&nbsp; ❌ ${qcmSessionBad} faux</p><button class="btn btn-primary" style="margin-top:15px;" onclick="restartQcm()">🔄 Recommencer</button></div>`;
+    updateQcmStats();
+    return;
+  }
+  qcmCurrent = qcmQueue.shift();
+  document.getElementById('qcmStar').classList.toggle('active', favWords.has(wordId(qcmCurrent)));
+  const { options, correct } = buildQcmOptions(qcmCurrent);
+  qcmCurrent._correct = correct;
+  document.getElementById('qcmPrompt').textContent = qcmField(qcmCurrent, false);
+  const optsDiv = document.getElementById('qcmOptions');
+  optsDiv.innerHTML = options.map((opt, i) => `<button class="quiz-option" data-idx="${i}">${qcmEscape(opt)}</button>`).join('');
+  const btns = optsDiv.querySelectorAll('.quiz-option');
+  btns.forEach((b, i) => b.addEventListener('click', () => answerQcm(b, options[i])));
+  const seen = qcmTotal - qcmQueue.length;
+  document.getElementById('qcmProgress').textContent = `Mot ${seen} / ${qcmTotal} • Niveau ${qcmLevel}`;
+  updateQcmStats();
+}
+function answerQcm(btn, chosen) {
+  if (qcmAnswered || !qcmCurrent) return;
+  qcmAnswered = true;
+  const correct = qcmCurrent._correct;
+  const isOk = chosen === correct;
+  document.querySelectorAll('#qcmOptions .quiz-option').forEach(b => {
+    b.classList.add('disabled');
+    if (b.textContent === correct) b.classList.add('correct');
+  });
+  if (!isOk) btn.classList.add('wrong');
+  if (isOk) {
+    qcmStats.good++; qcmSessionGood++; upLevel(qcmCurrent); removeFailedWord(qcmCurrent);
+    document.getElementById('qcmExplanation').innerHTML = `<div class="quiz-explanation">✅ Correct ! <strong>${qcmEscape(qcmField(qcmCurrent, false))}</strong> = <strong>${qcmEscape(correct)}</strong></div>`;
+  } else {
+    qcmStats.bad++; qcmSessionBad++; downLevel(qcmCurrent); addFailedWord(qcmCurrent);
+    document.getElementById('qcmExplanation').innerHTML = `<div class="quiz-explanation">❌ Faux. Bonne réponse : <strong>${qcmEscape(correct)}</strong><br><small style="opacity:0.7;">🔴 Ajouté aux mots à réviser</small></div>`;
+  }
+  saveStats('qcmStats', qcmStats);
+  document.getElementById('qcmNextBtn').disabled = false;
+  updateQcmStats();
+}
+function speakQcm() { if (qcmCurrent) speak(qcmCurrent.es); }
+function updateQcmStats() {
+  document.getElementById('qcmGood').textContent = qcmStats.good;
+  document.getElementById('qcmBad').textContent = qcmStats.bad;
+  const total = qcmStats.good + qcmStats.bad;
+  document.getElementById('qcmScore').textContent = (total === 0 ? 0 : Math.round(qcmStats.good / total * 100)) + '%';
+  const qb = document.getElementById('qcmFailedBadge');
+  if (qb) qb.textContent = failedWords.size;
+}
+
+/* ==========================================================
+   ASSISTANT IA
+   Couche générique : on branche n'importe quel fournisseur
+   compatible "Gemini" ou "OpenAI" (OpenRouter, Groq, Ollama,
+   ton propre proxy...). La clé reste dans le navigateur.
+   ========================================================== */
+const AI_CONFIG_KEY = 'aiConfig';
+const AI_CHAT_KEY   = 'aiChatHistory';
+
+const AI_PROVIDERS = {
+  google: {
+    label: '🟢 Google AI Studio — Gemini & Gemma (gratuit)',
+    kind: 'gemini',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent',
+    needsKey: true,
+    models: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemma-3-27b-it', 'gemma-3-12b-it'],
+    defaultModel: 'gemini-2.5-flash',
+    help: 'Clé gratuite sur <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com/app/apikey</a>. Quota gratuit généreux, aucune carte bancaire.',
+    modelHelp: 'Clique sur « Lister les modèles » pour voir exactement ce que ta clé peut appeler (les Gemma y apparaissent aussi).'
+  },
+  openrouter: {
+    label: '🔀 OpenRouter — modèles « :free »',
+    kind: 'openai',
+    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    needsKey: true,
+    models: ['google/gemma-3-27b-it:free', 'meta-llama/llama-3.3-70b-instruct:free', 'qwen/qwen-2.5-72b-instruct:free'],
+    defaultModel: 'google/gemma-3-27b-it:free',
+    help: 'Clé gratuite sur <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>. Tous les modèles suffixés <code>:free</code> sont gratuits (quota journalier).',
+    modelHelp: 'Prends toujours un identifiant qui finit par <code>:free</code> pour rester à 0 €.'
+  },
+  groq: {
+    label: '⚡ Groq — très rapide, palier gratuit',
+    kind: 'openai',
+    endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+    needsKey: true,
+    models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'],
+    defaultModel: 'llama-3.3-70b-versatile',
+    help: 'Clé gratuite sur <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.',
+    modelHelp: 'Groq ne sert pas Gemma 4, mais reste utile comme solution de secours.'
+  },
+  ollama: {
+    label: '💻 Ollama local — 100 % hors ligne, aucune clé',
+    kind: 'openai',
+    endpoint: 'http://localhost:11434/v1/chat/completions',
+    needsKey: false,
+    models: ['gemma3:4b', 'gemma3:12b', 'llama3.1:8b'],
+    defaultModel: 'gemma3:4b',
+    help: 'Installe <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> puis lance par ex. <code>ollama pull gemma3:4b</code>. Ne marche que sur l\'ordi où Ollama tourne.',
+    modelHelp: 'Le nom doit correspondre exactement à un modèle téléchargé (<code>ollama list</code>).'
+  },
+  custom: {
+    label: '🛠️ Proxy perso (compatible OpenAI)',
+    kind: 'openai',
+    endpoint: '',
+    needsKey: false,
+    models: [],
+    defaultModel: '',
+    help: 'Pour cacher ta clé côté serveur (Cloudflare Worker, Netlify Function...). L\'URL doit accepter le format <code>/chat/completions</code> d\'OpenAI.',
+    modelHelp: 'Le nom du modèle attendu par ton proxy.'
+  }
+};
+
+const AI = {
+  cfg: { provider: 'google', model: '', apiKey: '', endpoint: '' },
+  history: [],
+  busy: false,
+  proposals: {},
+  proposalSeq: 0
+};
+
+const AI_SUGGESTIONS = [
+  'Ajoute 15 mots sur la cuisine espagnole',
+  'Crée une catégorie « Voyage » avec 20 mots utiles',
+  'Explique-moi la différence entre por et para',
+  'Fais-moi réviser mes mots ratés',
+  'Donne 10 verbes irréguliers courants au présent'
+];
+
+/* ---------- Configuration ---------- */
+function loadAiConfig() {
+  try { return JSON.parse(localStorage.getItem(AI_CONFIG_KEY)) || {}; } catch (e) { return {}; }
+}
+function aiProvider() { return AI_PROVIDERS[AI.cfg.provider] || AI_PROVIDERS.google; }
+function aiIsReady() {
+  const p = aiProvider();
+  const endpoint = AI.cfg.endpoint || p.endpoint;
+  if (!endpoint) return false;
+  if (!(AI.cfg.model || p.defaultModel)) return false;
+  if (p.needsKey && !AI.cfg.apiKey) return false;
+  return true;
+}
+function initAiConfig() {
+  const saved = loadAiConfig();
+  AI.cfg.provider = AI_PROVIDERS[saved.provider] ? saved.provider : 'google';
+  AI.cfg.model    = saved.model || '';
+  AI.cfg.apiKey   = saved.apiKey || '';
+  AI.cfg.endpoint = saved.endpoint || '';
+
+  const sel = document.getElementById('aiProvider');
+  sel.innerHTML = Object.keys(AI_PROVIDERS)
+    .map(k => `<option value="${k}">${AI_PROVIDERS[k].label}</option>`).join('');
+  sel.value = AI.cfg.provider;
+
+  fillAiProviderFields();
+  document.getElementById('aiKey').value = AI.cfg.apiKey;
+  document.getElementById('aiModel').value = AI.cfg.model || aiProvider().defaultModel;
+  document.getElementById('aiEndpoint').value = AI.cfg.endpoint || aiProvider().endpoint;
+  updateAiStatus();
+  if (!aiIsReady()) document.getElementById('aiSetupPanel').classList.add('open');
+}
+function fillAiProviderFields() {
+  const p = aiProvider();
+  document.getElementById('aiProviderHelp').innerHTML = p.help || '';
+  document.getElementById('aiModelHelp').innerHTML = p.modelHelp || '';
+  document.getElementById('aiModelList').innerHTML = p.models.map(m => `<option value="${m}">`).join('');
+  document.getElementById('aiKeyField').classList.toggle('hidden', !p.needsKey);
+}
+function onAiProviderChange() {
+  AI.cfg.provider = document.getElementById('aiProvider').value;
+  const p = aiProvider();
+  AI.cfg.endpoint = '';
+  document.getElementById('aiEndpoint').value = p.endpoint;
+  document.getElementById('aiModel').value = p.defaultModel;
+  fillAiProviderFields();
+  updateAiStatus();
+}
+function saveAiConfig(showMsg) {
+  AI.cfg.provider = document.getElementById('aiProvider').value;
+  AI.cfg.model    = document.getElementById('aiModel').value.trim();
+  AI.cfg.apiKey   = document.getElementById('aiKey').value.trim();
+  const ep        = document.getElementById('aiEndpoint').value.trim();
+  AI.cfg.endpoint = (ep === aiProvider().endpoint) ? '' : ep;
+  localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(AI.cfg));
+  updateAiStatus();
+  if (showMsg) {
+    setAiSetupResult(aiIsReady()
+      ? '<div class="result correct">✅ Configuration enregistrée. Tu peux tester la connexion.</div>'
+      : '<div class="result wrong">⚠️ Il manque encore quelque chose (clé, modèle ou URL).</div>');
+  }
+}
+function updateAiStatus() {
+  const pill = document.getElementById('aiStatusPill');
+  const ok = aiIsReady();
+  pill.textContent = ok ? (AI.cfg.model || aiProvider().defaultModel) : 'non configuré';
+  pill.className = 'ai-pill ' + (ok ? 'on' : 'off');
+}
+function toggleAiPanel(id) { document.getElementById(id).classList.toggle('open'); }
+function setAiSetupResult(html) { document.getElementById('aiSetupResult').innerHTML = html; }
+
+/* ---------- Appels réseau ---------- */
+async function aiCall(messages, opts) {
+  opts = opts || {};
+  const p = aiProvider();
+  const endpoint = AI.cfg.endpoint || p.endpoint;
+  const model = AI.cfg.model || p.defaultModel;
+  if (!endpoint) throw new Error("URL de l'API manquante.");
+  if (!model) throw new Error('Nom du modèle manquant.');
+  if (p.needsKey && !AI.cfg.apiKey) throw new Error('Clé API manquante.');
+  return p.kind === 'gemini'
+    ? aiCallGemini(endpoint, model, messages, opts)
+    : aiCallOpenAI(endpoint, model, messages, opts);
+}
+
+async function aiCallGemini(endpoint, model, messages, opts) {
+  const url = endpoint.replace('{model}', encodeURIComponent(model))
+            + '?key=' + encodeURIComponent(AI.cfg.apiKey);
+  const system = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
+  const turns  = messages.filter(m => m.role !== 'system');
+  const contents = turns.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+  // Les modèles Gemma n'acceptent pas systemInstruction : on le fusionne dans le 1er message.
+  const isGemma = /gemma/i.test(model);
+  const body = {
+    contents,
+    generationConfig: {
+      temperature: opts.temperature != null ? opts.temperature : 0.4,
+      maxOutputTokens: opts.maxTokens || 2048
+    }
+  };
+  if (system) {
+    if (isGemma && contents.length) contents[0].parts[0].text = system + '\n\n---\n\n' + contents[0].parts[0].text;
+    else body.systemInstruction = { parts: [{ text: system }] };
+  }
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(aiErrorText(res, data));
+  const cand = data.candidates && data.candidates[0];
+  const text = cand && cand.content && cand.content.parts
+    ? cand.content.parts.map(pt => pt.text || '').join('')
+    : '';
+  if (!text) throw new Error('Réponse vide du modèle' + (cand && cand.finishReason ? ' (' + cand.finishReason + ')' : '') + '.');
+  return text;
+}
+
+async function aiCallOpenAI(endpoint, model, messages, opts) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (AI.cfg.apiKey) headers['Authorization'] = 'Bearer ' + AI.cfg.apiKey;
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: opts.temperature != null ? opts.temperature : 0.4,
+      max_tokens: opts.maxTokens || 2048
+    })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(aiErrorText(res, data));
+  const text = data.choices && data.choices[0] && data.choices[0].message
+    ? data.choices[0].message.content : '';
+  if (!text) throw new Error('Réponse vide du modèle.');
+  return text;
+}
+
+function aiErrorText(res, data) {
+  const msg = (data && data.error && (data.error.message || data.error)) || res.statusText || '';
+  if (res.status === 400) return 'Requête refusée (400). Vérifie le nom du modèle. ' + msg;
+  if (res.status === 401 || res.status === 403) return 'Clé API refusée (' + res.status + '). ' + msg;
+  if (res.status === 404) return 'Modèle ou URL introuvable (404). ' + msg;
+  if (res.status === 429) return 'Quota gratuit atteint (429). Réessaie plus tard ou change de modèle. ' + msg;
+  return 'Erreur ' + res.status + '. ' + msg;
+}
+
+async function testAiConnection() {
+  saveAiConfig(false);
+  if (!aiIsReady()) { setAiSetupResult('<div class="result wrong">⚠️ Configuration incomplète.</div>'); return; }
+  setAiSetupResult('<div class="ai-typing">⏳ Test en cours...</div>');
+  try {
+    const r = await aiCall([{ role: 'user', content: 'Réponds uniquement par : OK' }], { maxTokens: 32, temperature: 0 });
+    setAiSetupResult('<div class="result correct">✅ Connexion réussie. Réponse : <em>' + escapeHtml(r.trim().slice(0, 80)) + '</em></div>');
+  } catch (e) {
+    setAiSetupResult('<div class="result wrong">❌ ' + escapeHtml(e.message) + '</div>');
+  }
+}
+
+async function listAiModels() {
+  saveAiConfig(false);
+  const p = aiProvider();
+  const endpoint = AI.cfg.endpoint || p.endpoint;
+  if (!endpoint) { setAiSetupResult('<div class="result wrong">⚠️ URL manquante.</div>'); return; }
+  setAiSetupResult('<div class="ai-typing">⏳ Récupération de la liste...</div>');
+  try {
+    let url, headers = {};
+    if (p.kind === 'gemini') {
+      url = endpoint.split('/models/')[0] + '/models?key=' + encodeURIComponent(AI.cfg.apiKey) + '&pageSize=200';
+    } else {
+      url = endpoint.replace(/\/chat\/completions.*$/, '/models');
+      if (AI.cfg.apiKey) headers['Authorization'] = 'Bearer ' + AI.cfg.apiKey;
+    }
+    const res = await fetch(url, { headers });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(aiErrorText(res, data));
+    let names = [];
+    if (p.kind === 'gemini') {
+      names = (data.models || [])
+        .filter(m => !m.supportedGenerationMethods || m.supportedGenerationMethods.includes('generateContent'))
+        .map(m => String(m.name).replace(/^models\//, ''));
+    } else {
+      names = (data.data || data.models || []).map(m => m.id || m.name).filter(Boolean);
+    }
+    if (!names.length) throw new Error('Aucun modèle retourné.');
+    names.sort();
+    document.getElementById('aiModelList').innerHTML = names.map(n => `<option value="${escapeHtml(n)}">`).join('');
+    setAiSetupResult('<div class="result correct">✅ ' + names.length +
+      ' modèles disponibles. Ils sont maintenant proposés dans le champ « Modèle ».<div class="answer" style="font-weight:400;font-size:0.85em;max-height:150px;overflow:auto;">' +
+      escapeHtml(names.join('  •  ')) + '</div></div>');
+  } catch (e) {
+    setAiSetupResult('<div class="result wrong">❌ ' + escapeHtml(e.message) + '</div>');
+  }
+}
+
+/* ---------- Contexte envoyé au modèle ---------- */
+function buildAiSystemPrompt() {
+  const cats = [...new Set(wordBank.map(w => w.cat))];
+  const catSummary = cats.map(c => c + ' (' + wordBank.filter(w => w.cat === c).length + ')').join(', ');
+  const allEs = wordBank.map(w => w.es).join(', ');
+  const failed = wordBank.filter(w => failedWords.has(wordId(w))).slice(0, 60)
+    .map(w => w.fr + ' = ' + w.es);
+
+  return [
+    "Tu es le professeur d'espagnol intégré à l'application de révision de Baptiste (francophone, niveau débutant/intermédiaire).",
+    "Réponds toujours en français, de façon claire et concise. Utilise des exemples courts.",
+    '',
+    'ÉTAT ACTUEL DE SA BANQUE DE MOTS',
+    'Catégories existantes : ' + catSummary + '.',
+    'Total : ' + wordBank.length + ' mots.',
+    'Mots espagnols déjà présents (ne les propose pas en doublon) : ' + allEs,
+    failed.length ? 'Mots actuellement ratés par Baptiste : ' + failed.join(' ; ') : 'Aucun mot raté pour le moment.',
+    '',
+    "AJOUT DE MOTS — PROTOCOLE OBLIGATOIRE",
+    "Quand Baptiste demande d'ajouter des mots ou de créer une catégorie, termine ta réponse par UN bloc de code json",
+    'exactement de cette forme (rien d\'autre dans le bloc) :',
+    '```json',
+    '{"action":"add_words","words":[{"fr":"le poivron","es":"el pimiento","cat":"Cuisine"},{"fr":"la poêle","es":"la sartén","cat":"Cuisine"}]}',
+    '```',
+    "Règles pour ce bloc :",
+    '- "fr" = le mot ou l\'expression en français, "es" = en espagnol (avec accents corrects), "cat" = nom de la catégorie.',
+    '- Réutilise le nom exact d\'une catégorie existante quand elle convient, sinon invente un nom court.',
+    '- Ne mets jamais un mot espagnol déjà présent dans la liste ci-dessus.',
+    '- Écris une courte phrase d\'introduction AVANT le bloc json ; le bloc doit rester le dernier élément.',
+    "- N'utilise ce bloc QUE pour un ajout réel de vocabulaire. Pour une simple question de grammaire, réponds normalement, sans bloc json."
+  ].join('\n');
+}
+
+/* ---------- Chat ---------- */
+function loadAiHistory() {
+  try { return JSON.parse(localStorage.getItem(AI_CHAT_KEY)) || []; } catch (e) { return []; }
+}
+function saveAiHistory() {
+  localStorage.setItem(AI_CHAT_KEY, JSON.stringify(AI.history.slice(-40)));
+}
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function aiFormat(text) {
+  return escapeHtml(text)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+function renderAiChat() {
+  const box = document.getElementById('aiChat');
+  if (!AI.history.length && !AI.busy) {
+    box.innerHTML = '<div class="ai-empty">💬 Aucune conversation.<br>Configure un modèle ci-dessus, puis pose ta première question.</div>';
+    return;
+  }
+  let html = AI.history.map(m => {
+    const cls = m.role === 'user' ? 'user' : (m.error ? 'bot err' : 'bot');
+    let bubble = '<div class="bubble">' + aiFormat(m.display != null ? m.display : m.content) + '</div>';
+    return '<div class="ai-msg ' + cls + '">' + bubble + '</div>';
+  }).join('');
+  Object.keys(AI.proposals).forEach(id => { html += renderProposal(id); });
+  if (AI.busy) html += '<div class="ai-msg bot"><div class="bubble ai-typing">✍️ L\'IA réfléchit...</div></div>';
+  box.innerHTML = html;
+  box.scrollTop = box.scrollHeight;
+}
+function renderAiSuggestions() {
+  document.getElementById('aiSuggestions').innerHTML = AI_SUGGESTIONS
+    .map(s => '<button class="ai-chip" onclick="useAiSuggestion(this)">' + escapeHtml(s) + '</button>').join('');
+}
+function useAiSuggestion(btn) {
+  document.getElementById('aiInput').value = btn.textContent;
+  document.getElementById('aiInput').focus();
+}
+function clearAiChat() {
+  if (!confirm('Effacer toute la conversation ?')) return;
+  AI.history = [];
+  AI.proposals = {};
+  saveAiHistory();
+  renderAiChat();
+}
+
+async function sendAiMessage() {
+  if (AI.busy) return;
+  const input = document.getElementById('aiInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!aiIsReady()) {
+    document.getElementById('aiSetupPanel').classList.add('open');
+    setAiSetupResult('<div class="result wrong">⚠️ Configure d\'abord un modèle et une clé API.</div>');
+    document.getElementById('aiSetupPanel').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  input.value = '';
+  AI.history.push({ role: 'user', content: text });
+  AI.busy = true;
+  document.getElementById('aiSendBtn').disabled = true;
+  renderAiChat();
+
+  try {
+    const messages = [{ role: 'system', content: buildAiSystemPrompt() }]
+      .concat(AI.history.slice(-12).map(m => ({ role: m.role, content: m.content })));
+    const reply = await aiCall(messages);
+    const { clean, actions } = extractAiActions(reply);
+    AI.history.push({ role: 'assistant', content: reply, display: clean });
+    actions.forEach(a => {
+      const id = 'prop' + (++AI.proposalSeq);
+      AI.proposals[id] = a;
+    });
+  } catch (e) {
+    AI.history.push({ role: 'assistant', content: '⚠️ ' + e.message, display: '⚠️ ' + e.message, error: true });
+  } finally {
+    AI.busy = false;
+    document.getElementById('aiSendBtn').disabled = false;
+    saveAiHistory();
+    renderAiChat();
+  }
+}
+
+/* ---------- Propositions d'ajout ---------- */
+function extractAiActions(text) {
+  const actions = [];
+  let clean = text;
+  const re = /```(?:json)?\s*([\s\S]*?)```/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    try {
+      const obj = JSON.parse(m[1].trim());
+      if (obj && obj.action === 'add_words' && Array.isArray(obj.words) && obj.words.length) {
+        const words = obj.words
+          .filter(w => w && w.fr && w.es)
+          .map(w => ({
+            fr: String(w.fr).trim(),
+            es: String(w.es).trim(),
+            cat: String(w.cat || obj.category || 'Perso').trim()
+          }));
+        if (words.length) { actions.push({ words }); clean = clean.replace(m[0], ''); }
+      }
+    } catch (e) { /* bloc non JSON : on le laisse affiché */ }
+  }
+  return { clean: clean.trim(), actions };
+}
+
+function renderProposal(id) {
+  const p = AI.proposals[id];
+  if (!p) return '';
+  const cats = [...new Set(p.words.map(w => w.cat))];
+  const items = p.words.map(w =>
+    '<li><span class="es">' + escapeHtml(w.es) + '</span> — ' + escapeHtml(w.fr) +
+    ' <span style="color:#a0aec0;">[' + escapeHtml(w.cat) + ']</span></li>').join('');
+  return '<div class="ai-proposal">' +
+    '<h4>➕ ' + p.words.length + ' mot(s) à ajouter</h4>' +
+    '<div style="font-size:0.88em;color:#744210;">Catégorie(s) : <strong>' + escapeHtml(cats.join(', ')) + '</strong></div>' +
+    '<ul>' + items + '</ul>' +
+    '<div class="ai-row">' +
+      '<button class="btn btn-success" onclick="applyProposal(\'' + id + '\')">✅ Ajouter à ma banque</button>' +
+      '<button class="btn btn-danger" onclick="dismissProposal(\'' + id + '\')">❌ Ignorer</button>' +
+    '</div></div>';
+}
+function dismissProposal(id) { delete AI.proposals[id]; renderAiChat(); }
+function applyProposal(id) {
+  const p = AI.proposals[id];
+  if (!p) return;
+  const r = addCustomWords(p.words);
+  delete AI.proposals[id];
+  AI.history.push({
+    role: 'assistant',
+    content: 'Mots ajoutés.',
+    display: '✅ ' + r.added + ' mot(s) ajouté(s)' + (r.skipped ? ' — ' + r.skipped + ' doublon(s) ignoré(s)' : '') +
+             '. Ils sont disponibles dans les flashcards, le défi et le QCM.'
+  });
+  saveAiHistory();
+  renderAiChat();
+}
+
+/* ---------- Gestion des mots perso ---------- */
+function addCustomWords(items) {
+  const seen = new Set(wordBank.map(w => normalize(w.es) + '|' + normalize(w.fr)));
+  let added = 0, skipped = 0;
+  items.forEach(it => {
+    if (!it || !it.fr || !it.es) return;
+    const key = normalize(it.es) + '|' + normalize(it.fr);
+    if (seen.has(key)) { skipped++; return; }
+    seen.add(key);
+    customWords.push({ fr: it.fr.trim(), es: it.es.trim(), cat: (it.cat || 'Perso').trim(), custom: true });
+    added++;
+  });
+  if (added) { saveCustomWords(); refreshAfterBankChange(); }
+  else renderCustomWords();
+  return { added, skipped };
+}
+function renderCustomWords() {
+  const pill = document.getElementById('aiCustomPill');
+  if (pill) pill.textContent = customWords.length + (customWords.length > 1 ? ' mots' : ' mot');
+  const box = document.getElementById('customWordsList');
+  if (!box) return;
+  if (!customWords.length) {
+    box.innerHTML = '<div class="ai-empty">Aucun mot perso pour l\'instant. Ta banque d\'origine (' + BASE_WORD_BANK.length + ' mots) est intacte.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="custom-list">' + customWords.map((w, i) =>
+    '<div class="custom-item"><div><span class="es" style="color:#2b6cb0;font-weight:600;">' + escapeHtml(w.es) +
+    '</span> — ' + escapeHtml(w.fr) + ' <span class="cat">[' + escapeHtml(w.cat) + ']</span></div>' +
+    '<button class="x" onclick="removeCustomWord(' + i + ')" title="Supprimer">✕</button></div>').join('') + '</div>';
+}
+function removeCustomWord(i) {
+  customWords.splice(i, 1);
+  saveCustomWords();
+  refreshAfterBankChange();
+}
+function clearCustomWords() {
+  if (!customWords.length) return;
+  if (!confirm('Supprimer les ' + customWords.length + ' mots ajoutés ? (ta banque d\'origine n\'est pas touchée)')) return;
+  customWords = [];
+  saveCustomWords();
+  refreshAfterBankChange();
+}
+function exportCustomWords() {
+  if (!customWords.length) { alert('Aucun mot perso à exporter.'); return; }
+  const blob = new Blob([JSON.stringify(customWords.map(w => ({ fr: w.fr, es: w.es, cat: w.cat })), null, 2)],
+    { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mots-perso-espagnol.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function importCustomWords(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!Array.isArray(data)) throw new Error('Le fichier doit contenir une liste.');
+      const r = addCustomWords(data);
+      alert('✅ ' + r.added + ' mot(s) importé(s)' + (r.skipped ? ' — ' + r.skipped + ' doublon(s) ignoré(s)' : '') + '.');
+    } catch (e) {
+      alert('❌ Import impossible : ' + e.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+/* INIT */
+populateCategories();
+updateFailedBadges();
+updateFavBadges();
+updateMasteredCount();
+resetFlashcards();
+restartChallenge();
+nextSentence();
+refreshCategoryCheckboxes('qcmCategoryFilter', qcmMode);
+restartQcm();
+
+/* INIT - Assistant IA */
+initAiConfig();
+AI.history = loadAiHistory();
+renderAiSuggestions();
+renderCustomWords();
+renderAiChat();
+document.getElementById('aiInput').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiMessage(); }
+});
+</script>
+</body>
+</html>
